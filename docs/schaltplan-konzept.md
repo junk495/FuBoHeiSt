@@ -7,7 +7,7 @@ Finale Bauteilwerte und exakte Verdrahtung werden im EasyEDA-Schaltplan festgele
 
 - Controller: **ESP32-S3-DevKitC-1** (ESP32-S3-WROOM-1-N16R8) als Steckmodul (U1).
 - 7 Motoren über **4× DRV8833** (7 Kanäle + 1 Reserve).
-- Strommessung: **INA219** (I²C, Stall) + **Shunt → MCP6002 → TLV3201 → PCNT** (Ripple).
+- Strommessung: **INA219** (I²C, Stall) + **Shunt → MCP602 → LM393 → PCNT** (Ripple).
 - Hauptventil: **SSR** (3,3 V, 40 A).
 - Versorgung: extern 5 V → PCB (**ME6217/MP2307** → 3,3 V_MOTOR).
 
@@ -30,7 +30,8 @@ Finale Bauteilwerte und exakte Verdrahtung werden im EasyEDA-Schaltplan festgele
 ### 2.3 Strommessung / Ripple
 - INA219 in Serie im Motorstrompfad, I²C an GPIO1/GPIO2 (Stall-/DC-Strom).
 - Shunt (Bestückungsoption 0,1/0,5/1 Ω):
-  - AC-Pfad: Hochpass → MCP6002 (Gain) → TLV3201 (Komparator, Hysterese) → GPIO38 (PCNT).
+  - AC-Pfad: Hochpass → MCP602 (Gain) → LM393 (Komparator, Hysterese) → GPIO38 (PCNT).
+  - LM393 = Open-Collector → Pullup (10 kΩ) an 3,3 V nötig; 2. Kanal ungenutzt (Eingänge fest verdrahten).
   - Komparator-Schwelle: Trimmer oder DAC (tuning-freundlich).
 
 ### 2.4 SSR (Hauptventil)

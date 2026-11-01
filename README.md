@@ -4,6 +4,9 @@
 > Steuert **7 HmIP-VDMOT-Stellmotoren** (3,3 V DC) + **1 Hauptventil** (motorisierter Kugelhahn, 230 V, ein/aus).
 > **Offline-first:** Der Regelkreis läuft komplett lokal – keine Cloud- oder Internet-Abhängigkeit.
 
+> **Gesamtkonzept** (Was/Warum/Wie + KI-Integration): siehe [`docs/gesamtkonzept.md`](docs/gesamtkonzept.md).
+> Dieses README ist die **technische Spec** (Hardware + Firmware + Datenmodell).
+
 ## 1. Ziel & Umfang
 
 - **7 Heizkreise** regeln (nur Ventile, kein Eingriff in die Vorlauftemperatur).
@@ -52,7 +55,7 @@ extern 5 V -------->| PCB                                       |
 ESP32-S3 (GPIO)
   |- 14x IN1/IN2 --> 7 Motoren (4x DRV8833)
   |- I2C -----------> INA219 (Stall-Erkennung)
-  |- PCNT ----------> TLV3201 (Ripple)  <--  Shunt -> MCP6002
+  |- PCNT ----------> LM393 (Ripple)  <--  Shunt -> MCP602
   |- GPIO ----------> SSR -> Hauptventil (230 V)
   `- GPIO (1-Wire) -> Vorlauf-/Bodenfuehler (DS18B20)
 ```
@@ -70,15 +73,15 @@ Motorstrom → Shunt → Spannung ∝ I
 | Bauteil | Funktion | Menge | Status |
 |---|---|---|---|
 | ESP32-S3-DevKitC-1 (S3-WROOM-1-N16R8) | Controller + WLAN/BLE 5 | 1 | vorhanden |
-| DRV8833 (Dual-H-Brücke) | Motor-Treiber | 4 | kaufen |
+| DRV8833 (Dual-H-Brücke) | Motor-Treiber | 4 | bestellt |
 | INA219 | Strommessung (Stall, I²C) | 1 | vorhanden |
 | Shunt (0,1–0,5 Ω) | Strommessung | 1 | vorhanden (MELF) |
-| MCP6002 (OpAmp) | Ripple-Verstärkung | 1 | kaufen |
-| TLV3201 (Komparator) | Ripple → Digitalpulse | 1 | kaufen |
-| RJ12/6P6C-Buchse | Anschluss VDMOT | 7 | kaufen |
+| MCP602 (OpAmp, SOIC-8) | Ripple-Verstärkung | 1 | vorhanden |
+| LM393DR2G (Komparator) | Ripple → Digitalpulse | 1 | bestellt |
+| RJ12/6P6C-Buchse | Anschluss VDMOT | 7 | bestellt |
 | SSR (3,3 V, 40 A) | Hauptventil (230 V) | 1 | vorhanden |
 | ME6217 (od. MP2307) | 5 V → 3,3 V_MOTOR | 1 | vorhanden |
-| externes 5-V-Netzteil | Versorgung | 1 | vorhanden |
+| externes 5-V-Netzteil | Versorgung | 1 | kaufen (falls nicht vorhanden) |
 
 **Sensorik**
 | Bauteil | Funktion | Menge | Status |
@@ -162,6 +165,7 @@ FuBoHeiSt/
 ├── README.md                  (Spec)
 ├── AGENTS.md                  (Arbeitsweise für Agenten)
 ├── .clinerules                (Cline-Regeln)
+├── docs/gesamtkonzept.md      (Gesamtkonzept: Was/Warum/Wie + KI)
 ├── docs/schaltplan-konzept.md (Netzlisten-Konzept + Pinbelegung)
 ├── docs/bom.md                (Stückliste: vorhanden vs. kaufen)
 ├── docs/sensorik.md           (Raumfühler-Recherche, offen)
