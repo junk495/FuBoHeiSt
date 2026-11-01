@@ -1,8 +1,8 @@
-# ESP32-S3-DevKitC-1 — Referenz (Modul-Datenblatt)
+# ESP32-S3-DevKitC-1 — Beschreibung & Pinbelegung
 
-> Referenzblatt für das Steckmodul **ESP32-S3-DevKitC-1** (U1), Modul **ESP32-S3-WROOM-1-N16R8**
+> Zentrale Steuerung des GrabGeist. Gesteckt wird nur das **DevKit** (U1); alle übrigen Bauteile
+> sitzen auf der Trägerplatine (SMD). Das Board trägt das Modul **ESP32-S3-WROOM-1-N16R8**
 > (16 MB Flash, 8 MB PSRAM, 2,4 GHz WiFi + Bluetooth LE 5).
-> Die projektbezogene Pin-Belegung für FuBoHeiSt steht in [`docs/schaltplan-konzept.md`](schaltplan-konzept.md) §3.
 
 ## Technische Daten (DevKitC-1)
 
@@ -47,11 +47,7 @@
 | 35 | GPIO38 | 24 | GND |
 | 34 | GPIO37 | 23 | GND |
 
-> ⚠️ **OPI-PSRAM (N16R8):** GPIO33–37 sind intern mit dem 8-MB-Octal-PSRAM verbunden und **nicht** nutzbar.
-> Die GPIO35/36/37 in der Tabelle oben sind daher auf dem N16R8 **nicht frei** (nur beim N8/N16 ohne PSRAM).
-> Deshalb liegt 1-Wire bei FuBoHeiSt auf GPIO40 statt GPIO35.
-
-## Belegte Pins – GrabGeist (anderes Projekt, nur Referenz)
+## Belegte Pins (GrabGeist)
 
 | Footprint-Pin | GPIO | Funktion |
 |---|---|---|
@@ -76,10 +72,24 @@
 ## Hinweise
 
 - **Strapping-Pins (nicht verwenden):** GPIO0, GPIO3, GPIO45, GPIO46.
-- **OPI-PSRAM (nicht verwenden):** GPIO33–37 sind beim N16R8 (8 MB Octal-PSRAM) intern belegt.
 - **ADC1:** GPIO1–10 (bei BLE/WiFi voll nutzbar). **ADC2:** GPIO11–20 (analog eingeschränkt bei WiFi).
 - **JTAG:** GPIO39–42 (nur digital, besser meiden).
 - **USB-OTG:** GPIO19/20 (USB_D−/D+).
 - **RGB-LED (WS2812):** GPIO48 — on-Board, per NeoPixel-Library ansteuerbar.
 - **UART0:** GPIO43 (TX) / GPIO44 (RX) = `Serial0` (Arduino); `Serial` läuft über USB-C.
 - **Flashen:** über USB-C (USB-Serial-JTAG); GPIO0 = BOOT-Taster.
+
+
+## Hinweise & Hardware-Restriktionen (N16R8)
+
+- **SPERRZONE Octal-PSRAM (N16R8):** **GPIO35 (Pin 32), GPIO36 (Pin 33) und GPIO37 (Pin 34)** sind beim N16R8-Modul intern fest für den 8-MB-Octal-PSRAM verdrahtet. **Niemals extern beschalten!**
+- **Strapping-Pins (beim Boot kritisch, meiden):** GPIO0 (Pin 31), GPIO3 (Pin 13), GPIO45 (Pin 30), GPIO46 (Pin 14).
+- **Kein Hardware-DAC:** Der ESP32-S3 besitzt keinen echten DAC. Analoge Referenzspannungen bei Bedarf per `LEDC-PWM` + RC-Tiefpass (z. B. 10 kΩ + 100 nF) erzeugen.
+- **ADC1 vs. ADC2:** 
+  - **ADC1 (GPIO1–10):** Jederzeit voll nutzbar (auch parallel zu WiFi/BLE).
+  - **ADC2 (GPIO11–20):** Nicht nutzbar, solange WiFi oder BLE aktiv ist (Hardware-Konflikt im Chip).
+- **USB-C-Buchsen (2× vorhanden):**
+  - **Linke Buchse ("USB"):** Natives USB-Serial-JTAG / USB-OTG direkt über **GPIO19 (D−, Pin 25) / GPIO20 (D+, Pin 26)**.
+  - **Rechte Buchse ("UART"):** Läuft über den On-Board **CH343P**-Chip auf **GPIO43 (U0TXD, Pin 43) / GPIO44 (U0RXD, Pin 42)**.
+- **JTAG-Pins (GPIO39–42, Pin 36–39):** Als normale Digital-GPIOs frei nutzbar (sofern kein externes JTAG-Debugging über Pins genutzt wird).
+- **RGB-LED (WS2812 an GPIO48, Pin 29):** Ab Werk aktiv verbunden und per `Adafruit_NeoPixel` / `FastLED` (1 Pixel) als Status-LED nutzbar. Daher GPIO48 nicht für empfindliche externe Eingänge (wie 1-Wire) verwenden.
