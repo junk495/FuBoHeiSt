@@ -23,8 +23,10 @@ Finale Bauteilwerte und exakte Verdrahtung werden im EasyEDA-Schaltplan festgele
 - 4× DRV8833, je 2 H-Brücken (A/B).
 - Kanalzuordnung: Chip1=A/B, Chip2=A/B, Chip3=A/B, Chip4=A/B (1 Reserve).
 - IN-Pins an GPIO (siehe §3).
-- nSLEEP aller 4 Chips gemeinsam an GPIO18 (HIGH = aktiv).
+- nSLEEP aller 4 Chips gemeinsam an GPIO18 (HIGH = aktiv) + **10 kΩ Pull-down an GND** (Treiber bleiben während des ESP32-Boots deaktiviert).
 - nFAULT aller 4 Chips wire-AND + Pullup an GPIO21 (LOW = Fehler).
+- **Ladungspumpe je DRV8833 (Pflicht):** 10 nF zwischen VCP (Pin 14) und VM (Pin 12), 10 nF zwischen CP1 (Pin 16) und CP2 (Pin 15), 2,2 µF an VINT (Pin 11) → GND.
+- **Reserve-Kanal (Chip 4, Kanal B):** ungenutzte BIN1/BIN2 fest auf GND legen (nicht floaten).
 - Ausgänge → RJ12/6P6C-Buchse, nur die 2 Mitteladern (Pin 3+4).
 
 ### 2.3 Strommessung / Ripple
@@ -37,6 +39,7 @@ Finale Bauteilwerte und exakte Verdrahtung werden im EasyEDA-Schaltplan festgele
 - **Stufe 1 – MCP602 (nicht-invertierend, Gain ≈ 23, VDD = 5 V):**
   - IN+ über Tiefpass vom Shunt; IN− an Teiler R2=1 kΩ (GND) / R3=22 kΩ (Feedback).
   - 50 mA → ~575 mV, 120 mA Stall → ~1,38 V am Ausgang (kein Übersteuern).
+  - **2. Kanal (OpAmp B) als Spannungsfolger:** IN2− (Pin 6) mit OUT2 (Pin 7) verbinden, IN2+ (Pin 5) an GND.
 - **Stufe 2 – LM393 als „Data Slicer" (selbstnachführend, kein DAC/PWM nötig):**
   - IN+ = schnelles Signal (R4=10 kΩ von MCP602-OUT).
   - IN− = gleitender Mittelwert (R5=10 kΩ + C2=4,7–10 µF, fc ≈ 3 Hz) → Schwelle folgt dem DC-Pegel automatisch (Offset ~65 mV statt ~300 mV).
@@ -68,8 +71,9 @@ Finale Bauteilwerte und exakte Verdrahtung werden im EasyEDA-Schaltplan festgele
 | PCNT (Ripple) | 38 | 35 |
 | I²C SDA / SCL (INA219) | 1 / 2 | 41 / 40 |
 | 1-Wire (Vorlauf/Boden) | 40 | 37 |
+| Buzzer (Fehler-Signalton) | 39 | 36 |
 
-Gemieden: Strapping (GPIO0/3/45/46), USB-OTG (19/20), JTAG (39–42), UART0 (43/44), OPI-PSRAM (GPIO33–37, N16R8).
+Gemieden: Strapping (GPIO0/3/45/46), USB-OTG (19/20), UART0 (43/44), OPI-PSRAM (GPIO33–37, N16R8). JTAG (39–42) frei nutzbar als GPIO (39 = Buzzer, 40 = 1-Wire).
 
 Vollständige Pinbelegung + Hinweise: siehe [`esp32_devkit.md`](esp32_devkit.md).
 

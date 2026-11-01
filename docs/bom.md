@@ -28,8 +28,8 @@ Stand: vor Schaltplan. **Bedarf** = was die 7-Zonen-Anlage wirklich braucht.
 | PTC-Sicherung 1812L300 (C20627123) | 1 | 10 | ✅ haben | Eingangsschutz |
 | Buzzer MLT-8540H (C95298) | 1 | 5 | ✅ haben | Fehler-Signalton |
 | Dioden (BAT54W, 1N4148W, 1N5817WS, …) | div. | div. | ✅ haben | Schutz / Freilauf |
-| Widerstände (1k, 1k5, 2k2, 10k, 47k, 100k, …) | div. | div. | ✅ haben | Pullups / Filter / Hysterese |
-| Kondensatoren (100 n, 10 µ, 22 µ, 100 µ, 470 µ) | div. | div. | ✅ haben | Entkopplung / Bulk |
+| Widerstände (1k, 1k5, 2k2, 4k7, 10k, 22k, 47k, 100k, 470k, …) | div. | div. | ✅ haben | Pullups / Filter / Hysterese |
+| Kondensatoren (10 n, 100 n, 2,2 µ, 10 µ, 22 µ, 100 µ, 470 µ) | div. | div. | ✅ haben | Entkopplung / Bulk / Ladungspumpe |
 | XH2.54-Stecker (2/3/4/6-pol) | div. | div. | ✅ haben | Anschlüsse |
 | AO3401A / AO3400 / MMBT5551 | div. | div. | ✅ haben | Schalter / Treiber |
 

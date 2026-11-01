@@ -49,7 +49,7 @@ extern 5 V -------->| PCB                                       |
                     |  |- 5 V ----------> ESP32-S3-DevKitC-1    |
                     |  |                  (eigener LDO -> 3,3 V) |
                     |  `- ME6217 (LDO) -> 3,3 V_MOTOR           |
-                    |                     -> DRV8833 (VM)  |
+                    |                     -> [Shunt 0,1 Ω (INA219)] -> DRV8833 (VM)  |
                     +-------------------------------------------+
 
 ESP32-S3 (GPIO)
@@ -149,7 +149,7 @@ fbh/config/...                 → Parameter (publish)
 ```
 
 ### 5.2 Persistente Konfig (NVS)
-- Zonenliste: Name, Belag, `max_Bodentemp`, `P_ges`, Totband
+- Zonenliste: Name, Belag, `max_Bodentemp`, `P_ges`, `P_touch`, Totband
 - Reglerparameter je Zone (PI + Vorsteuerung)
 - Master-Logik (Nachlauf, Frostschutz-Schwelle)
 - MQTT-Broker + OTA-Einstellungen
@@ -159,7 +159,7 @@ fbh/config/...                 → Parameter (publish)
 - [ ] BLE-Sensor-Modell festlegen (LYWSD03MMC hat Versions-Risiko → Alternativen, siehe `docs/sensorik.md`)
 - [ ] Vorlauftemperatur messen → entscheidet, ob ein Bodensensor nötig ist
 - [ ] Holz-Bodentemperatur-Grenzwert final nach Herstellerangabe prüfen
-- [ ] Pin-Belegung finalisieren (Vorschlag in `docs/schaltplan-konzept.md`)
+- [x] Pin-Belegung finalisiert
 
 ## 7. Nächste Schritte
 1. Schaltplan-/Netzlisten-Konzept finalisieren (`docs/schaltplan-konzept.md`)
