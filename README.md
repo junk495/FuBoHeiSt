@@ -175,6 +175,7 @@ FuBoHeiSt/
 ├── .clinerules                (Cline-Regeln)
 ├── docs/gesamtkonzept.md      (Gesamtkonzept: Was/Warum/Wie + KI)
 ├── docs/schaltplan-konzept.md (Netzlisten-Konzept + Pinbelegung)
+├── docs/pcb-design.md         (PCB-Layout-Notizen)
 ├── docs/esp32_devkit.md       (DevKitC-1-Referenz: Pinout + Hinweise)
 ├── docs/bom.md                (Stückliste: vorhanden vs. kaufen)
 ├── docs/sensorik.md           (Raumfühler-Recherche, offen)
