@@ -17,7 +17,7 @@ Finale Bauteilwerte und exakte Verdrahtung werden im EasyEDA-Schaltplan festgele
 - Eingang: 5 V (externes Netzteil) + GND; Feinsicherung + TVS am Eingang.
 - 5 V → DevKit-Pin „5V" (das DevKit erzeugt sein 3,3 V selbst).
 - 5 V → **ME6217 (LDO)** → 3,3 V_MOTOR, mit 100 nF + 10/22 µF Bulk. (LDO statt Schaltregler: kein Schalt-Ripple in der Messkette.)
-- 3,3 V_MOTOR → VM aller 4 DRV8833 (parallel). (Der Mess-Shunt liegt Low-Side an AISEN/BISEN, siehe §2.3.)
+- 3,3 V_MOTOR → 100 mΩ Shunt (INA219) → VM aller 4 DRV8833 (parallel). (Der Ripple-Shunt liegt Low-Side an AISEN/BISEN, siehe §2.3.)
 
 ### 2.2 Motor-Treiber
 - 4× DRV8833, je 2 H-Brücken (A/B).
@@ -28,7 +28,8 @@ Finale Bauteilwerte und exakte Verdrahtung werden im EasyEDA-Schaltplan festgele
 - Ausgänge → RJ12/6P6C-Buchse, nur die 2 Mitteladern (Pin 3+4).
 
 ### 2.3 Strommessung / Ripple
-- **INA219** (High-Side) mit **externem Shunt** (100 mΩ aus Bestand) zwischen IN+ (Pin 8) und IN− (Pin 7), I²C an GPIO1/GPIO2 → **DC/Stall**.
+- **INA219** (High-Side, SOIC-8) mit **externem Shunt** (100 mΩ aus Bestand) zwischen **IN+ (Pin 1)** und **IN− (Pin 2)** → **DC/Stall** (I²C an GPIO1/GPIO2).
+  - SOIC-8-Pinout: Pin 1=IN+, Pin 2=IN−, Pin 3=GND, Pin 4=VS (3,3 V), Pin 5=SCL, Pin 6=SDA, Pin 7=A0, Pin 8=A1 (A0/A1 an GND → Adresse 0x40).
   - Hinweis: der INA219 hat **keinen internen Shunt** (den hat erst der INA260) – der Shunt wird extern platziert.
 - **Ripple-Abgriff Low-Side:** alle AISEN/BISEN-Pins der 4× DRV8833 → **1 gemeinsamer Shunt** gegen GND: **0,5 Ω (4× 2 Ω parallel)** oder **1 Ω (2× 2 Ω parallel)**.
   - Am ISEN fließt der Strom immer positiv Richtung GND (die H-Brücke richtet intern gleich) → massebezogenes DC+Ripple-Signal, **kein Bias nötig**.
@@ -38,7 +39,7 @@ Finale Bauteilwerte und exakte Verdrahtung werden im EasyEDA-Schaltplan festgele
   - 50 mA → ~575 mV, 120 mA Stall → ~1,38 V am Ausgang (kein Übersteuern).
 - **Stufe 2 – LM393 als „Data Slicer" (selbstnachführend, kein DAC/PWM nötig):**
   - IN+ = schnelles Signal (R4=10 kΩ von MCP602-OUT).
-  - IN− = gleitender Mittelwert (R5=47 kΩ + C2=1 µF, fc ≈ 3 Hz) → Schwelle folgt dem DC-Pegel automatisch.
+  - IN− = gleitender Mittelwert (R5=10 kΩ + C2=4,7–10 µF, fc ≈ 3 Hz) → Schwelle folgt dem DC-Pegel automatisch (Offset ~65 mV statt ~300 mV).
   - R_bias=470 kΩ von 3,3 V an IN− (hebt Ruhepegel leicht an, verhindert Schwingen im Stillstand).
   - Hysterese R_hyst=470 kΩ von OUT auf IN+.
   - LM393 = Open-Collector → Pullup 10 kΩ an **3,3 V**; VDD des LM393 = 5 V (Eingangsbereich 0–3,5 V); 2. Kanal fest verdrahten.

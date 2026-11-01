@@ -9,7 +9,8 @@ Stand: vor Schaltplan. **Bedarf** = was die 7-Zonen-Anlage wirklich braucht.
 |---|---|---|---|---|
 | ESP32-S3-DevKitC-1 (S3-WROOM-1-N16R8) | 1 | 1 | ✅ haben | Controller |
 | DRV8833CPWPR (HTSSOP-16) | 4 | 4 | ✅ bestellt | Motor-Treiber |
-| INA219AIDR (C138706) | 1 | 1 | ✅ haben | Strommessung (Stall, I²C; ext. Shunt 0,1 Ω) |
+| INA219AIDR (C138706) | 1 | 1 | ✅ haben | Strommessung (Stall, I²C) |
+| 100 mΩ MELF (C4135594) | 1 | 1 | ✅ haben | INA219-Shunt (High-Side) |
 | MCP602-I/SN (C29605) | 1 | 4 | ✅ haben | Ripple-OpAmp (Doppel-OpAmp, reicht) |
 | LM393DR2G (SOIC-8, dual) | 1 | 1 | ✅ bestellt | Ripple-Komparator (Open-Collector) |
 | 2 Ω MELF (C1855973) | 4 | 4 | ✅ haben | ISEN-Shunt (4× parallel = 0,5 Ω) |

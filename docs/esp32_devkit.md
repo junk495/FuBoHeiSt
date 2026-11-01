@@ -1,8 +1,8 @@
-# ESP32-S3-DevKitC-1 — Beschreibung & Pinbelegung
+# ESP32-S3-DevKitC-1 — Referenz (Modul-Datenblatt)
 
-> Zentrale Steuerung des GrabGeist. Gesteckt wird nur das **DevKit** (U1); alle übrigen Bauteile
-> sitzen auf der Trägerplatine (SMD). Das Board trägt das Modul **ESP32-S3-WROOM-1-N16R8**
+> Referenzblatt für das Steckmodul **ESP32-S3-DevKitC-1** (U1), Modul **ESP32-S3-WROOM-1-N16R8**
 > (16 MB Flash, 8 MB PSRAM, 2,4 GHz WiFi + Bluetooth LE 5).
+> Die projektbezogene Pin-Belegung für FuBoHeiSt steht in [`docs/schaltplan-konzept.md`](schaltplan-konzept.md) §3.
 
 ## Technische Daten (DevKitC-1)
 
@@ -47,7 +47,7 @@
 | 35 | GPIO38 | 24 | GND |
 | 34 | GPIO37 | 23 | GND |
 
-## Belegte Pins (GrabGeist)
+## Belegte Pins – GrabGeist (anderes Projekt, nur Referenz)
 
 | Footprint-Pin | GPIO | Funktion |
 |---|---|---|
@@ -68,17 +68,6 @@
 | 41 | GPIO1 | Akustik-Trigger (ADC1_CH0) |
 | 42 | GPIO44 (U0RXD) | UART RX |
 | 43 | GPIO43 (U0TXD) | UART TX |
-
-## Hinweise
-
-- **Strapping-Pins (nicht verwenden):** GPIO0, GPIO3, GPIO45, GPIO46.
-- **ADC1:** GPIO1–10 (bei BLE/WiFi voll nutzbar). **ADC2:** GPIO11–20 (analog eingeschränkt bei WiFi).
-- **JTAG:** GPIO39–42 (nur digital, besser meiden).
-- **USB-OTG:** GPIO19/20 (USB_D−/D+).
-- **RGB-LED (WS2812):** GPIO48 — on-Board, per NeoPixel-Library ansteuerbar.
-- **UART0:** GPIO43 (TX) / GPIO44 (RX) = `Serial0` (Arduino); `Serial` läuft über USB-C.
-- **Flashen:** über USB-C (USB-Serial-JTAG); GPIO0 = BOOT-Taster.
-
 
 ## Hinweise & Hardware-Restriktionen (N16R8)
 
