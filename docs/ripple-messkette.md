@@ -53,19 +53,19 @@ ISEN (alle 8 AISEN/BISEN) ──►[0,5 Ω = 4× 2 Ω parallel]──► GND    
 ### 3.4 Stufe 2 – LM393 als Data Slicer (selbstnachführend)
 - **Versorgung:** VCC = **5 V** (Pin 8), GND (Pin 4).
 - **IN+ (Pin 3):** schnelles Signal über **R4 = 10 kΩ** von MCP602-OUT1.
-- **IN− (Pin 2):** gleitender Mittelwert über **R5 = 10 kΩ** von OUT1 + **C2 = 10 µF** (oder 4,7 µF) → GND (fc ≈ 1,6 Hz); zusätzlich **Rbias = 470 kΩ** von 3,3 V → hebt den Ruhepegel um ~65 mV (verhindert Schwingen im Stillstand).
+- **IN− (Pin 2):** gleitender Mittelwert über **R5 = 4,7 kΩ** von OUT1 + **C2 = 2,2 µF** → GND (τ ≈ 10 ms, fc ≈ 15 Hz — schnell genug, um beim Motoranlauf keine Pulse zu verschlucken); zusätzlich **Rbias = 100 kΩ** von 3,3 V → hebt den Ruhepegel auf ~148 mV (sicher über der +69-mV-Hysterese → stabil im Stillstand).
 - **OUT (Pin 1):** Open-Collector → **Pullup 10 kΩ an 3,3 V**; **Hysterese Rhyst = 470 kΩ** von OUT auf IN+.
 - **Ausgang → PCNT (GPIO38).**
 - **Kanal 2 (ungenutzt):** 2IN+ (Pin 5) → GND, 2IN− (Pin 6) → 3,3 V, 2OUT (Pin 7) → **NC** (offen).
 
 ## 4. Spannungspegel (Startwerte)
 
-| Punkt | @ 50 mA Lauf | @ 120 mA Stall |
+| Punkt | @ 50 mA Lauf | @ 120 mA Stall (blockiert) |
 |---|---|---|
-| ISEN-Shunt (0,5 Ω) | 25 mV DC, ±5 mV Ripple | 60 mV DC, ±6 mV Ripple |
-| MCP602 OUT1 (Gain 23) | 575 mV DC, ±115 mV Ripple (230 mVpp) | 1,38 V DC, ±140 mV Ripple |
-| LM393 IN− (Mittel + Offset) | ~640 mV | ~1,44 V |
-| LM393 OUT → PCNT | Rechteck bei Ripple-Frequenz (0 / 3,3 V) | Rechteck (0 / 3,3 V) |
+| ISEN-Shunt (0,5 Ω) | 25 mV DC, ±5 mV Ripple | 60 mV DC, **0 mV Ripple** (Motor steht) |
+| MCP602 OUT1 (Gain 23) | 575 mV DC, ±115 mV Ripple (230 mVpp) | 1,38 V DC, **0 mV Ripple** |
+| LM393 IN− (Mittel + Offset) | ~OUT1 + Offset | ~OUT1 + Offset |
+| LM393 OUT → PCNT | Rechteck bei Ripple-Frequenz (0 / 3,3 V) | **konstant, keine Pulse** |
 
 ## 5. Stückliste (nur diese Kette)
 
@@ -78,11 +78,13 @@ ISEN (alle 8 AISEN/BISEN) ──►[0,5 Ω = 4× 2 Ω parallel]──► GND    
 | R2 | 1 kΩ | 1 | Gain-Teiler |
 | R3 | 22 kΩ | 1 | Gain-Feedback |
 | R4 | 10 kΩ | 1 | Slicer schnell |
-| R5 | 10 kΩ | 1 | Slicer Mittelwert |
-| C2 | 10 µF (od. 4,7 µF) | 1 | Slicer Mittelwert |
-| Rbias | 470 kΩ | 1 | Slicer Offset |
+| R5 | 4,7 kΩ | 1 | Slicer Mittelwert |
+| C2 | 2,2 µF | 1 | Slicer Mittelwert |
+| Rbias | 100 kΩ | 1 | Slicer Offset |
 | Rhyst | 470 kΩ | 1 | Hysterese |
 | Rpullup | 10 kΩ | 1 | LM393 Open-Collector |
+| C_abblock | 100 nF | 3 | Entkopplung INA219 (VS), MCP602 (VDD), LM393 (VCC) |
+| R_pullup | 4,7 kΩ | 2 | I²C-Pullups (SDA/SCL) |
 | MCP602-I/SN | Dual-OpAmp | 1 | Stufe 1 |
 | LM393DR2G | Dual-Komparator | 1 | Stufe 2 |
 | INA219AIDR | Strom-Monitor | 1 | Pfad A |

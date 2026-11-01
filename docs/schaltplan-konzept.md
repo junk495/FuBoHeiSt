@@ -42,8 +42,8 @@ Finale Bauteilwerte und exakte Verdrahtung werden im EasyEDA-Schaltplan festgele
   - **2. Kanal (OpAmp B) als Spannungsfolger:** IN2− (Pin 6) mit OUT2 (Pin 7) verbinden, IN2+ (Pin 5) an GND.
 - **Stufe 2 – LM393 als „Data Slicer" (selbstnachführend, kein DAC/PWM nötig):**
   - IN+ = schnelles Signal (R4=10 kΩ von MCP602-OUT).
-  - IN− = gleitender Mittelwert (R5=10 kΩ + C2=4,7–10 µF, fc ≈ 3 Hz) → Schwelle folgt dem DC-Pegel automatisch (Offset ~65 mV statt ~300 mV).
-  - R_bias=470 kΩ von 3,3 V an IN− (hebt Ruhepegel leicht an, verhindert Schwingen im Stillstand).
+  - IN− = gleitender Mittelwert (R5=4,7 kΩ + C2=2,2 µF, τ ≈ 10 ms) → Schwelle folgt dem DC-Pegel automatisch, ohne beim Anlauf Pulse zu verschlucken.
+  - R_bias=100 kΩ von 3,3 V an IN− → Ruhepegel ~148 mV (sicher über der +69-mV-Hysterese → stabil im Stillstand).
   - Hysterese R_hyst=470 kΩ von OUT auf IN+.
   - LM393 = Open-Collector → Pullup 10 kΩ an **3,3 V**; VDD des LM393 = 5 V (Eingangsbereich 0–3,5 V); 2. Kanal fest verdrahten.
 
