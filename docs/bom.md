@@ -9,12 +9,12 @@ Stand: vor Schaltplan. **Bedarf** = was die 7-Zonen-Anlage wirklich braucht.
 |---|---|---|---|---|
 | ESP32-S3-DevKitC-1 (S3-WROOM-1-N16R8) | 1 | 1 | ✅ haben | Controller |
 | DRV8833CPWPR (HTSSOP-16) | 4 | 4 | ✅ bestellt | Motor-Treiber |
-| INA219AIDR (C138706) | 1 | 1 | ✅ haben | Strommessung (Stall, I²C) |
+| INA219AIDR (C138706) | 1 | 1 | ✅ haben | Strommessung (Stall, I²C; ext. Shunt 0,1 Ω) |
 | MCP602-I/SN (C29605) | 1 | 4 | ✅ haben | Ripple-OpAmp (Doppel-OpAmp, reicht) |
 | LM393DR2G (SOIC-8, dual) | 1 | 1 | ✅ bestellt | Ripple-Komparator (Open-Collector) |
-| Shunt 100 mΩ / 2 Ω (C4135594 / C1855973) | 1 | 1 | ✅ haben | Ripple-Abgriff |
+| 2 Ω MELF (C1855973) | 4 | 4 | ✅ haben | ISEN-Shunt (4× parallel = 0,5 Ω) |
 | SSR (3,3 V, 40 A) | 1 | 1 | ✅ haben | Hauptventil (230 V) |
-| ME6217C33M5G / MSMP2307DN-LF-Z | 1 | 1 | ✅ haben | 5 V → 3,3 V_MOTOR |
+| ME6217C33M5G (C427602) | 1 | 1 | ✅ haben | 5 V → 3,3 V_MOTOR (LDO) |
 | AP63205WU-7 + 10 µH (C2071056 / C514807) | 1 | 1 | ✅ haben | 5-V-Buck (optional 12 V → 5 V) |
 | Würth 615006138421 (RJ12 6P6C) | 7 | 7 | ✅ bestellt | Ventil-Anschluss |
 | DS18B20-Anlegefühler | 1 | 0 | 🛒 kaufen | Vorlauftemperatur |

@@ -72,6 +72,8 @@ Sonderfall **Küche + Wohnzimmer**: ein offener Raum, aber zwei getrennte Kreise
   - Liegt der Vorlauf dauerhaft ≤ ~32 °C → Holz ist sicher, das Modell genügt.
   - Liegt er höher → **1 Bodensensor** im kritischsten Holzraum als harte Grenze.
 
+- **Wichtig fürs Modell:** Ein statisches `Bodentemp = f(...)` reicht nicht – der Boden folgt dem Ventil nur verzögert (thermische Trägheit, τ ≈ 45–90 min). Das Bodenmodell muss ein **zeitdiskretes RC-Glied (exponentiell geglätteter Zustand)** sein, sonst drosselt es das Ventil sofort nach dem Öffnen.
+
 ## 5. KI-Integration (nur Entwicklung, nicht im Regelkreis)
 
 **Grundsatz:** KI im laufenden Regelkreis würde das Offline-first-Ziel verletzen. KI ist deshalb ein **Entwicklungs-/Tuning-Werkzeug**, kein Betriebs-Bestandteil.

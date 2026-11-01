@@ -48,23 +48,23 @@
 extern 5 V -------->| PCB                                       |
                     |  |- 5 V ----------> ESP32-S3-DevKitC-1    |
                     |  |                  (eigener LDO -> 3,3 V) |
-                    |  `- ME6217/MP2307 -> 3,3 V_MOTOR           |
-                    |                     -> [Shunt] -> DRV8833  |
+                    |  `- ME6217 (LDO) -> 3,3 V_MOTOR           |
+                    |                     -> DRV8833 (VM)  |
                     +-------------------------------------------+
 
 ESP32-S3 (GPIO)
   |- 14x IN1/IN2 --> 7 Motoren (4x DRV8833)
   |- I2C -----------> INA219 (Stall-Erkennung)
-  |- PCNT ----------> LM393 (Ripple)  <--  Shunt -> MCP602
+  |- PCNT ----------> LM393 (Ripple)  <--  Shunt (ISEN, Low-Side) -> MCP602
   |- GPIO ----------> SSR -> Hauptventil (230 V)
   `- GPIO (1-Wire) -> Vorlauf-/Bodenfuehler (DS18B20)
 ```
 
 ### 3.2 Signalaufbereitung Strommessung
 ```
-Motorstrom → Shunt → Spannung ∝ I
-                       ├─ INA219 (I²C) ────────────────► Stall-Erkennung (DC)
-                       └─ Hochpass/AC ──► OpAmp ──► Komparator ──► PCNT (Ripple)
+Motorstrom:
+  ├─ INA219 (High-Side, ext. Shunt 0,1 Ω) ──► I²C ──► Stall-Erkennung (DC)
+  └─ ISEN-Shunt (Low-Side, 0,5 Ω) ──► Tiefpass ──► MCP602 (Gain) ──► LM393 (Data Slicer) ──► PCNT (Ripple)
 ```
 
 ### 3.3 Bauteileliste (Konzept)
@@ -74,13 +74,13 @@ Motorstrom → Shunt → Spannung ∝ I
 |---|---|---|---|
 | ESP32-S3-DevKitC-1 (S3-WROOM-1-N16R8) | Controller + WLAN/BLE 5 | 1 | vorhanden |
 | DRV8833 (Dual-H-Brücke) | Motor-Treiber | 4 | bestellt |
-| INA219 | Strommessung (Stall, I²C) | 1 | vorhanden |
-| Shunt (0,1–0,5 Ω) | Strommessung | 1 | vorhanden (MELF) |
+| INA219 (ext. Shunt 0,1 Ω) | Strommessung (Stall, I²C) | 1 | vorhanden |
+| Shunt 2 Ω ×4 (parallel = 0,5 Ω, Low-Side ISEN) | Strommessung | 1 | vorhanden |
 | MCP602 (OpAmp, SOIC-8) | Ripple-Verstärkung | 1 | vorhanden |
 | LM393DR2G (Komparator) | Ripple → Digitalpulse | 1 | bestellt |
 | RJ12/6P6C-Buchse | Anschluss VDMOT | 7 | bestellt |
 | SSR (3,3 V, 40 A) | Hauptventil (230 V) | 1 | vorhanden |
-| ME6217 (od. MP2307) | 5 V → 3,3 V_MOTOR | 1 | vorhanden |
+| ME6217 (LDO) | 5 V → 3,3 V_MOTOR | 1 | vorhanden |
 | externes 5-V-Netzteil | Versorgung | 1 | kaufen (falls nicht vorhanden) |
 
 **Sensorik**
@@ -114,14 +114,22 @@ STOP-Bedingungen (erste gewinnt):
   1. PCNT erreicht Ziel-Pulse → Brake → Position = Ziel
   2. Strom > Stall-Schwelle (entprellt) → Brake → Endanschlag
   3. Timeout → Brake → FEHLER (neu referenzieren)
-Kalibrierung: "ganz zu" (Stall) = 0 Pulse, "ganz auf" (Stall) = P_ges,
-  Position[%] = P / P_ges × 100; Bremsweg wird gemessen und kompensiert.
+Kalibrierung (einmalig, mit Leerhub):
+  - "ganz zu" (Stall) = 0 Pulse, "ganz auf" (Stall) = P_ges
+  - P_touch = Federkontakt (INA219-Stromanstieg) → Totzone davor
+  - Regelbereich 0–100 % zwischen P_touch und P_open
+  - Bremsweg messen und kompensieren
+
+Auto-Homing (gegen Ripple-Zähl-Drift):
+  - Soll ≤ 5 % oder ≥ 95 % → zwingend bis zum Stall, Zähler hart auf 0 / P_ges
+  - nach ~50 Teilbewegungen ohne Endanschlag einmal referenzieren
 ```
 
 ### 4.3 Regelung (träge FBH)
 - Abtastzeit ~60 s; PI mit Anti-Windup; Ausgang ratenbegrenzt.
 - Vorsteuerung über Außentemperatur (antizipiert Wärmebedarf).
 - `max_Bodentemperatur` je Zone (Holz 27 °C, Fliese 29 °C) → Ventil drosseln.
+- Bodenmodell als zeitdiskretes RC-Glied (thermische Trägheit, τ ~45–90 min) – kein statisches f(...).
 - Frostschutz mit Vorrang.
 - Master-Logik: Hauptventil EIN wenn ≥1 Zone offen; AUS bei keinem Bedarf (mit Nachlauf).
 
@@ -167,6 +175,7 @@ FuBoHeiSt/
 ├── .clinerules                (Cline-Regeln)
 ├── docs/gesamtkonzept.md      (Gesamtkonzept: Was/Warum/Wie + KI)
 ├── docs/schaltplan-konzept.md (Netzlisten-Konzept + Pinbelegung)
+├── docs/esp32_devkit.md       (DevKitC-1-Referenz: Pinout + Hinweise)
 ├── docs/bom.md                (Stückliste: vorhanden vs. kaufen)
 ├── docs/sensorik.md           (Raumfühler-Recherche, offen)
 ├── hardware/                  (EasyEDA, später)

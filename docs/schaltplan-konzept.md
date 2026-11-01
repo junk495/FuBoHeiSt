@@ -9,15 +9,15 @@ Finale Bauteilwerte und exakte Verdrahtung werden im EasyEDA-Schaltplan festgele
 - 7 Motoren über **4× DRV8833** (7 Kanäle + 1 Reserve).
 - Strommessung: **INA219** (I²C, Stall) + **Shunt → MCP602 → LM393 → PCNT** (Ripple).
 - Hauptventil: **SSR** (3,3 V, 40 A).
-- Versorgung: extern 5 V → PCB (**ME6217/MP2307** → 3,3 V_MOTOR).
+- Versorgung: extern 5 V → PCB (**ME6217 (LDO)** → 3,3 V_MOTOR).
 
 ## 2. Netzliste (Blöcke)
 
 ### 2.1 Versorgung
 - Eingang: 5 V (externes Netzteil) + GND; Feinsicherung + TVS am Eingang.
 - 5 V → DevKit-Pin „5V" (das DevKit erzeugt sein 3,3 V selbst).
-- 5 V → ME6217 (oder MP2307) → 3,3 V_MOTOR, mit 100 nF + 10/22 µF Bulk.
-- 3,3 V_MOTOR → Shunt → VM aller 4 DRV8833 (parallel).
+- 5 V → **ME6217 (LDO)** → 3,3 V_MOTOR, mit 100 nF + 10/22 µF Bulk. (LDO statt Schaltregler: kein Schalt-Ripple in der Messkette.)
+- 3,3 V_MOTOR → VM aller 4 DRV8833 (parallel). (Der Mess-Shunt liegt Low-Side an AISEN/BISEN, siehe §2.3.)
 
 ### 2.2 Motor-Treiber
 - 4× DRV8833, je 2 H-Brücken (A/B).
@@ -28,18 +28,27 @@ Finale Bauteilwerte und exakte Verdrahtung werden im EasyEDA-Schaltplan festgele
 - Ausgänge → RJ12/6P6C-Buchse, nur die 2 Mitteladern (Pin 3+4).
 
 ### 2.3 Strommessung / Ripple
-- INA219 in Serie im Motorstrompfad, I²C an GPIO1/GPIO2 (Stall-/DC-Strom).
-- Shunt (Bestückungsoption 0,1/0,5/1 Ω):
-  - AC-Pfad: Hochpass → MCP602 (Gain) → LM393 (Komparator, Hysterese) → GPIO38 (PCNT).
-  - LM393 = Open-Collector → Pullup (10 kΩ) an 3,3 V nötig; 2. Kanal ungenutzt (Eingänge fest verdrahten).
-  - Komparator-Schwelle: Trimmer oder DAC (tuning-freundlich).
+- **INA219** (High-Side) mit **externem Shunt** (100 mΩ aus Bestand) zwischen IN+ (Pin 8) und IN− (Pin 7), I²C an GPIO1/GPIO2 → **DC/Stall**.
+  - Hinweis: der INA219 hat **keinen internen Shunt** (den hat erst der INA260) – der Shunt wird extern platziert.
+- **Ripple-Abgriff Low-Side:** alle AISEN/BISEN-Pins der 4× DRV8833 → **1 gemeinsamer Shunt** gegen GND: **0,5 Ω (4× 2 Ω parallel)** oder **1 Ω (2× 2 Ω parallel)**.
+  - Am ISEN fließt der Strom immer positiv Richtung GND (die H-Brücke richtet intern gleich) → massebezogenes DC+Ripple-Signal, **kein Bias nötig**.
+  - **Tiefpass** R1=1 kΩ + C1=100 nF (fc ≈ 1,6 kHz): filtert Bürstenfeuer, lässt Kommutator-Ripple (200–1000 Hz) durch.
+- **Stufe 1 – MCP602 (nicht-invertierend, Gain ≈ 23, VDD = 5 V):**
+  - IN+ über Tiefpass vom Shunt; IN− an Teiler R2=1 kΩ (GND) / R3=22 kΩ (Feedback).
+  - 50 mA → ~575 mV, 120 mA Stall → ~1,38 V am Ausgang (kein Übersteuern).
+- **Stufe 2 – LM393 als „Data Slicer" (selbstnachführend, kein DAC/PWM nötig):**
+  - IN+ = schnelles Signal (R4=10 kΩ von MCP602-OUT).
+  - IN− = gleitender Mittelwert (R5=47 kΩ + C2=1 µF, fc ≈ 3 Hz) → Schwelle folgt dem DC-Pegel automatisch.
+  - R_bias=470 kΩ von 3,3 V an IN− (hebt Ruhepegel leicht an, verhindert Schwingen im Stillstand).
+  - Hysterese R_hyst=470 kΩ von OUT auf IN+.
+  - LM393 = Open-Collector → Pullup 10 kΩ an **3,3 V**; VDD des LM393 = 5 V (Eingangsbereich 0–3,5 V); 2. Kanal fest verdrahten.
 
 ### 2.4 SSR (Hauptventil)
 - GPIO47 → Vorwiderstand/Transistor → SSR-Eingang (3,3 V, 40 A).
 - SSR-Ausgang schaltet 230 V zum Kugelhahn; Snubber/Varistor am Ausgang (induktive Last).
 
 ### 2.5 1-Wire
-- GPIO35 + 4,7 kΩ Pullup → DS18B20 (Vorlauf) + optionaler Bodenfühler.
+- GPIO40 + 4,7 kΩ Pullup → DS18B20 (Vorlauf) + optionaler Bodenfühler.
 
 ## 3. Pin-Belegung (ESP32-S3-DevKitC-1)
 
@@ -57,11 +66,12 @@ Finale Bauteilwerte und exakte Verdrahtung werden im EasyEDA-Schaltplan festgele
 | SSR (Hauptventil) | 47 | 28 |
 | PCNT (Ripple) | 38 | 35 |
 | I²C SDA / SCL (INA219) | 1 / 2 | 41 / 40 |
-| 1-Wire (Vorlauf/Boden) | 35 | 32 |
+| 1-Wire (Vorlauf/Boden) | 40 | 37 |
 
-Gemieden: Strapping (GPIO0/3/45/46), USB-OTG (19/20), JTAG (39–42), UART0 (43/44).
+Gemieden: Strapping (GPIO0/3/45/46), USB-OTG (19/20), JTAG (39–42), UART0 (43/44), OPI-PSRAM (GPIO33–37, N16R8).
+
+Vollständige Pinbelegung + Hinweise: siehe [`esp32_devkit.md`](esp32_devkit.md).
 
 ## 4. Offene Punkte (im Schaltplan zu klären)
-- Shunt-Wert und OpAmp-Gain (nach Messung von Stall-Strom/Ripple).
-- Komparator-Schwelle: Trimmer vs. DAC.
-- ME6217 vs. MP2307 final.
+- R/C-Werte (Gain, Filter-Grenzfrequenzen) sind Startwerte – nach Messung von Stall-Strom/Ripple finalisieren.
+- SSR-Mindestlast prüfen: 40-A-SSR an einem kleinen Kugelhahn (oft < 50 mA) schaltet evtl. nicht sauber → ggf. kleines Relais / kleines 2-A-SSR (z. B. Omron G3MB-202P).
