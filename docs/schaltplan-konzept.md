@@ -17,7 +17,7 @@ Finale Bauteilwerte und exakte Verdrahtung werden im EasyEDA-Schaltplan festgele
 - Eingang: 5 V (externes Netzteil) + GND; Feinsicherung + TVS am Eingang.
 - 5 V → DevKit-Pin „5V" (das DevKit erzeugt sein 3,3 V selbst).
 - 5 V → **ME6217 (LDO)** → 3,3 V_MOTOR, mit 100 nF + 10/22 µF Bulk. (LDO statt Schaltregler: kein Schalt-Ripple in der Messkette.)
-- 3,3 V_MOTOR → 100 mΩ Shunt (INA219) → VM aller 4 DRV8833 (parallel). (Der Ripple-Shunt liegt Low-Side an AISEN/BISEN, siehe §2.3.)
+- 3,3 V_MOTOR → 0,5 Ω Shunt (INA219, 2× 1 Ω parallel) → VM aller 4 DRV8833 (parallel). (Der Ripple-Shunt liegt Low-Side an AISEN/BISEN, siehe §2.3.)
 
 ### 2.2 Motor-Treiber
 - 4× DRV8833, je 2 H-Brücken (A/B).
@@ -25,15 +25,15 @@ Finale Bauteilwerte und exakte Verdrahtung werden im EasyEDA-Schaltplan festgele
 - IN-Pins an GPIO (siehe §3).
 - nSLEEP aller 4 Chips gemeinsam an GPIO18 (HIGH = aktiv) + **10 kΩ Pull-down an GND** (Treiber bleiben während des ESP32-Boots deaktiviert).
 - nFAULT aller 4 Chips wire-AND + Pullup an GPIO21 (LOW = Fehler).
-- **Ladungspumpe je DRV8833 (Pflicht):** 10 nF zwischen VCP (Pin 14) und VM (Pin 12), 10 nF zwischen CP1 (Pin 16) und CP2 (Pin 15), 2,2 µF an VINT (Pin 11) → GND.
+- **Ladungspumpe je DRV8833 (Pflicht):** 10 nF zwischen VCP (Pin 14) und VM (Pin 12), 10 nF zwischen CP1 (Pin 16) und CP2 (Pin 15), 10 µF an VINT (Pin 11) → GND.
 - **Reserve-Kanal (Chip 4, Kanal B):** ungenutzte BIN1/BIN2 fest auf GND legen (nicht floaten).
 - Ausgänge → RJ12/6P6C-Buchse, nur die 2 Mitteladern (Pin 3+4).
 
 ### 2.3 Strommessung / Ripple
-- **INA219** (High-Side, SOIC-8) mit **externem Shunt** (100 mΩ aus Bestand) zwischen **IN+ (Pin 1)** und **IN− (Pin 2)** → **DC/Stall** (I²C an GPIO1/GPIO2).
+- **INA219** (High-Side, SOIC-8) mit **externem Shunt** (0,5 Ω = 2× 1 Ω 0805 parallel) zwischen **IN+ (Pin 1)** und **IN− (Pin 2)** → **DC/Stall** (I²C an GPIO1/GPIO2).
   - SOIC-8-Pinout: Pin 1=IN+, Pin 2=IN−, Pin 3=GND, Pin 4=VS (3,3 V), Pin 5=SCL, Pin 6=SDA, Pin 7=A0, Pin 8=A1 (A0/A1 an GND → Adresse 0x40).
   - Hinweis: der INA219 hat **keinen internen Shunt** (den hat erst der INA260) – der Shunt wird extern platziert.
-- **Ripple-Abgriff Low-Side:** alle AISEN/BISEN-Pins der 4× DRV8833 → **1 gemeinsamer Shunt** gegen GND: **0,5 Ω (4× 2 Ω parallel)** oder **1 Ω (2× 2 Ω parallel)**.
+- **Ripple-Abgriff Low-Side:** alle AISEN/BISEN-Pins der 4× DRV8833 → **1 gemeinsamer Shunt (0,5 Ω = 2× 1 Ω 0805 parallel)** gegen GND.
   - Am ISEN fließt der Strom immer positiv Richtung GND (die H-Brücke richtet intern gleich) → massebezogenes DC+Ripple-Signal, **kein Bias nötig**.
   - **Tiefpass** R1=1 kΩ + C1=100 nF (fc ≈ 1,6 kHz): filtert Bürstenfeuer, lässt Kommutator-Ripple (200–1000 Hz) durch.
 - **Stufe 1 – MCP602 (nicht-invertierend, Gain ≈ 23, VDD = 5 V):**
@@ -42,8 +42,8 @@ Finale Bauteilwerte und exakte Verdrahtung werden im EasyEDA-Schaltplan festgele
   - **2. Kanal (OpAmp B) als Spannungsfolger:** IN2− (Pin 6) mit OUT2 (Pin 7) verbinden, IN2+ (Pin 5) an GND.
 - **Stufe 2 – LM393 als „Data Slicer" (selbstnachführend, kein DAC/PWM nötig):**
   - IN+ = schnelles Signal (R4=10 kΩ von MCP602-OUT).
-  - IN− = gleitender Mittelwert (R5=4,7 kΩ + C2=2,2 µF, τ ≈ 10 ms) → Schwelle folgt dem DC-Pegel automatisch, ohne beim Anlauf Pulse zu verschlucken.
-  - R_bias=100 kΩ von 3,3 V an IN− → Ruhepegel ~148 mV (sicher über der +69-mV-Hysterese → stabil im Stillstand).
+  - IN− = gleitender Mittelwert (R5=1 kΩ + C2=10 µF, τ ≈ 10 ms) → Schwelle folgt dem DC-Pegel automatisch, ohne beim Anlauf Pulse zu verschlucken.
+  - R_bias=22 kΩ von 3,3 V an IN− → Ruhepegel ~143 mV (sicher über der +69-mV-Hysterese → stabil im Stillstand).
   - Hysterese R_hyst=470 kΩ von OUT auf IN+.
   - LM393 = Open-Collector → Pullup 10 kΩ an **3,3 V**; VDD des LM393 = 5 V (Eingangsbereich 0–3,5 V); 2. Kanal fest verdrahten.
 

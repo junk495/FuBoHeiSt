@@ -49,7 +49,7 @@ extern 5 V -------->| PCB                                       |
                     |  |- 5 V ----------> ESP32-S3-DevKitC-1    |
                     |  |                  (eigener LDO -> 3,3 V) |
                     |  `- ME6217 (LDO) -> 3,3 V_MOTOR           |
-                    |                     -> [Shunt 0,1 Ω (INA219)] -> DRV8833 (VM)  |
+                    |                     -> [Shunt 0,5 Ω (INA219)] -> DRV8833 (VM)  |
                     +-------------------------------------------+
 
 ESP32-S3 (GPIO)
@@ -63,7 +63,7 @@ ESP32-S3 (GPIO)
 ### 3.2 Signalaufbereitung Strommessung
 ```
 Motorstrom:
-  ├─ INA219 (High-Side, ext. Shunt 0,1 Ω) ──► I²C ──► Stall-Erkennung (DC)
+  ├─ INA219 (High-Side, ext. Shunt 0,5 Ω) ──► I²C ──► Stall-Erkennung (DC)
   └─ ISEN-Shunt (Low-Side, 0,5 Ω) ──► Tiefpass ──► MCP602 (Gain) ──► LM393 (Data Slicer) ──► PCNT (Ripple)
 ```
 
@@ -74,8 +74,8 @@ Motorstrom:
 |---|---|---|---|
 | ESP32-S3-DevKitC-1 (S3-WROOM-1-N16R8) | Controller + WLAN/BLE 5 | 1 | vorhanden |
 | DRV8833 (Dual-H-Brücke) | Motor-Treiber | 4 | bestellt |
-| INA219 (ext. Shunt 0,1 Ω) | Strommessung (Stall, I²C) | 1 | vorhanden |
-| Shunt 2 Ω ×4 (parallel = 0,5 Ω, Low-Side ISEN) | Strommessung | 1 | vorhanden |
+| INA219 (ext. Shunt 0,5 Ω) | Strommessung (Stall, I²C) | 1 | vorhanden |
+| Shunt 2× 1 Ω 0805 parallel = 0,5 Ω (Low-Side ISEN) | Strommessung | 2 | haben |
 | MCP602 (OpAmp, SOIC-8) | Ripple-Verstärkung | 1 | vorhanden |
 | LM393DR2G (Komparator) | Ripple → Digitalpulse | 1 | bestellt |
 | RJ12/6P6C-Buchse | Anschluss VDMOT | 7 | bestellt |

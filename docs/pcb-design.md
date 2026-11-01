@@ -17,7 +17,7 @@ Stand: vor Schaltplan-Erstellung.
 - **Ladungspumpe (Pflicht, direkt am Chip):**
   - 10 nF zwischen **VCP (Pin 14)** und **VM (Pin 12)**.
   - 10 nF zwischen **CP1 (Pin 16)** und **CP2 (Pin 15)**.
-  - 2,2 µF an **VINT (Pin 11)** → GND.
+  - 10 µF an **VINT (Pin 11)** → GND.
 - **nSLEEP** an GPIO18 + **10 kΩ Pull-down** an GND.
 - **Reserve-Kanal (Chip 4, Kanal B):** BIN1/BIN2 fest auf **GND**.
 
@@ -34,12 +34,12 @@ Stand: vor Schaltplan-Erstellung.
 
 ### INA219AIDR (SOIC-8)
 - Pinout: **1=IN+, 2=IN−, 3=GND, 4=VS, 5=SCL, 6=SDA, 7=A0, 8=A1** (A0/A1 → GND = Adresse 0x40).
-- Externer **100 mΩ Shunt** zwischen IN+ und IN−.
+- Externer **0,5 Ω Shunt (2× 1 Ω 0805 parallel)** zwischen IN+ und IN−.
 
 ## 3. Leiterbahnen & Routing
 
 - **RJ12-Motorleitungen** (AOUT1/AOUT2, BOUT1/BOUT2 → Würth 615006138421, Pin 3+4): **0,4–0,5 mm** Breite.
-- **ISEN-Shunt:** alle 8 AISEN/BISEN → gemeinsamer Knoten → 4× 2 Ω MELF parallel → GND. **Abgriff für R1=1 kΩ + C1=100 nF vom gemeinsamen Knoten** (vor den Widerständen); Verbindung zum MCP602 kurz halten, fern vom SSR.
+- **ISEN-Shunt:** alle 8 AISEN/BISEN → gemeinsamer Knoten → 2× 1 Ω 0805 parallel (= 0,5 Ω) → GND. **Abgriff für R1=1 kΩ + C1=100 nF vom gemeinsamen Knoten** (vor den Widerständen); Verbindung zum MCP602 kurz halten, fern vom SSR.
 - **I²C (SDA/SCL):** 4,7 kΩ Pullups nahe am INA219.
 - **1-Wire (GPIO40):** 4,7 kΩ Pullup.
 - **Komparator-Ausgang → PCNT (GPIO38):** Pullup 10 kΩ an 3,3 V.
@@ -48,7 +48,7 @@ Stand: vor Schaltplan-Erstellung.
 
 - 5-V-Eingang: **Feinsicherung + TVS**.
 - ME6217: 100 nF + 10/22 µF Bulk am Ausgang.
-- 3,3 V_MOTOR → 100 mΩ Shunt (INA219) → VM aller DRV8833.
+- 3,3 V_MOTOR → 0,5 Ω Shunt (INA219, 2× 1 Ω parallel) → VM aller DRV8833.
 - DevKitC-1: 5 V am 5V-Pin (eigener Bord-LDO erzeugt das 3,3 V für das ESP32-S3).
 
 ## 5. Sicherheit (230 V)

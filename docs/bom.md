@@ -1,42 +1,78 @@
-# Stückliste (BOM)
+# Stückliste (BOM) – vollständig
 
-Stand: vor Schaltplan. **Bedarf** = was die 7-Zonen-Anlage wirklich braucht.
-**Haben** = was du im Bestand hast bzw. schon bestellt hast (LCSC-Nr. in Klammern).
+Stand: vor Schaltplan. Vollständige Liste aller PCB-Bauteile mit Mengen.
+**✅ haben** = im Bestand / bereits bestellt; **🛒 kaufen** = noch zu beschaffen.
 
-## Kern-Bauteile
+## Halbleiter / ICs
 
-| Bauteil | Bedarf | Haben | Status | Verwendung |
-|---|---|---|---|---|
-| ESP32-S3-DevKitC-1 (S3-WROOM-1-N16R8) | 1 | 1 | ✅ haben | Controller |
-| DRV8833CPWPR (HTSSOP-16) | 4 | 4 | ✅ bestellt | Motor-Treiber |
-| INA219AIDR (C138706) | 1 | 1 | ✅ haben | Strommessung (Stall, I²C) |
-| 100 mΩ MELF (C4135594) | 1 | 1 | ✅ haben | INA219-Shunt (High-Side) |
-| MCP602-I/SN (C29605) | 1 | 4 | ✅ haben | Ripple-OpAmp (Doppel-OpAmp, reicht) |
-| LM393DR2G (SOIC-8, dual) | 1 | 1 | ✅ bestellt | Ripple-Komparator (Open-Collector) |
-| 2 Ω MELF (C1855973) | 4 | 4 | ✅ haben | ISEN-Shunt (4× parallel = 0,5 Ω) |
-| SSR (3,3 V, 40 A) | 1 | 1 | ✅ haben | Hauptventil (230 V) |
-| ME6217C33M5G (C427602) | 1 | 1 | ✅ haben | 5 V → 3,3 V_MOTOR (LDO) |
-| AP63205WU-7 + 10 µH (C2071056 / C514807) | 1 | 1 | ✅ haben | 5-V-Buck (optional 12 V → 5 V) |
-| Würth 615006138421 (RJ12 6P6C) | 7 | 7 | ✅ bestellt | Ventil-Anschluss |
-| DS18B20-Anlegefühler | 1 | 0 | 🛒 kaufen | Vorlauftemperatur |
+| Bauteil | Menge | Status |
+|---|---|---|
+| ESP32-S3-DevKitC-1 (S3-WROOM-1-N16R8) | 1 | ✅ haben |
+| DRV8833CPWPR (HTSSOP-16) | 4 | ✅ bestellt |
+| INA219AIDR (SOIC-8) | 1 | ✅ haben |
+| MCP602-I/SN (SOIC-8) | 1 | ✅ haben |
+| LM393DR2G (SOIC-8) | 1 | ✅ bestellt |
+| ME6217C33M5G (SOT-23-5) | 1 | ✅ haben |
+| AP63205WU-7 (TSOT-23-6) | 1 | ✅ haben (nur bei 12-V-Einspeisung) |
+| SS8050 (SOT-23) | 2 | ✅ haben (SSR- + Buzzer-Treiber) |
+| SSR (3,3 V, 40 A) | 1 | ✅ haben |
 
-## Treiber, Schutz & Passives
+## Shunts
 
-| Bauteil | Bedarf | Haben | Status | Verwendung |
-|---|---|---|---|---|
-| SS8050 (C7420370) | 2 | 50 | ✅ haben | SSR-/Buzzer-Treiber |
-| PTC-Sicherung 1812L300 (C20627123) | 1 | 10 | ✅ haben | Eingangsschutz |
-| Buzzer MLT-8540H (C95298) | 1 | 5 | ✅ haben | Fehler-Signalton |
-| Dioden (BAT54W, 1N4148W, 1N5817WS, …) | div. | div. | ✅ haben | Schutz / Freilauf |
-| Widerstände (1k, 1k5, 2k2, 4k7, 10k, 22k, 47k, 100k, 470k, …) | div. | div. | ✅ haben | Pullups / Filter / Hysterese |
-| Kondensatoren (10 n, 100 n, 2,2 µ, 10 µ, 22 µ, 100 µ, 470 µ) | div. | div. | ✅ haben | Entkopplung / Bulk / Ladungspumpe |
-| XH2.54-Stecker (2/3/4/6-pol) | div. | div. | ✅ haben | Anschlüsse |
-| AO3401A / AO3400 / MMBT5551 | div. | div. | ✅ haben | Schalter / Treiber |
+| Bauteil | Menge | Status |
+|---|---|---|
+| 1 Ω 0805 (1 %) | 4 | ✅ haben (2× INA219 + 2× ISEN, je 0,5 Ω) |
+
+## Widerstände (0805, 1 %)
+
+| Wert | Menge | Verwendung |
+|---|---|---|
+| 1 kΩ | 5 | R1, R2, R5 + 2× SS8050-Basis |
+| 10 kΩ | 5 | R4, Rpullup, nSLEEP-Pulldown + 2× SS8050-BE-Pulldown |
+| 22 kΩ | 2 | R3 (Gain), Rbias (Slicer-Offset) |
+| 4,7 kΩ | 3 | 2× I²C-Pullup + 1-Wire-Pullup |
+| 470 kΩ | 1 | Rhyst (Hysterese) |
+
+## Kondensatoren
+
+| Wert | Menge | Verwendung |
+|---|---|---|
+| 10 nF | 8 | Ladungspumpe (2 je DRV8833) |
+| 100 nF | 6 | C1 + 3× IC-Abblock + ME6217-Eingang + Reserve |
+| 10 µF | 6 | C2 + 4× VINT + ME6217-Ausgang |
+| 22 µF | 1 | AP63205-Ausgang (optional) |
+
+## Dioden & Schutz
+
+| Bauteil | Menge | Status |
+|---|---|---|
+| 1N4148W (SOD-123) | 1 | ✅ haben (Buzzer-Freilauf) |
+| TVS SMAJ5.0A | 1 | 🛒 kaufen (Überspannungsschutz, optional) |
+| PTC-Sicherung 1812L300 | 1 | ✅ haben |
+
+## Induktivität
+
+| Bauteil | Menge | Status |
+|---|---|---|
+| 10 µH (1,84 A) | 1 | ✅ haben (AP63205, optional) |
+
+## Verbinder & Sonstiges
+
+| Bauteil | Menge | Status |
+|---|---|---|
+| Buzzer MLT-8540H | 1 | ✅ haben |
+| Würth 615006138421 (RJ12 6P6C) | 7 | ✅ bestellt |
+| Buchsenleiste 1×22 (RM 2,54 mm) | 2 | 🛒 kaufen (DevKitC-1-Steckplatz) |
+| XH2.54 2-pol | 2 | ✅ haben (5-V-Eingang + SSR-Steuerung) |
+| XH2.54 3-pol | 1 | ✅ haben (1-Wire DS18B20) |
+| DS18B20-Anlegefühler | 1 | 🛒 kaufen |
 
 ## Zusammenfassung – noch zu beschaffen
 
 | Bauteil | Menge | ca. Preis |
 |---|---|---|
+| Buchsenleiste 1×22 (RM 2,54 mm) | 2 | ~0,5 € |
+| TVS SMAJ5.0A | 1 | ~0,3 € (optional) |
 | DS18B20-Anlegefühler | 1 | ~3 € |
 | externes 5-V-Netzteil | 1 | ~5 € (falls nicht vorhanden) |
 
@@ -44,3 +80,4 @@ Stand: vor Schaltplan. **Bedarf** = was die 7-Zonen-Anlage wirklich braucht.
 
 - Raumfühler (6×): Funk-Sensor, Modell offen (siehe `docs/sensorik.md`).
 - Bodensensor (0–1×): nur falls Vorlauf > ~32 °C.
+
