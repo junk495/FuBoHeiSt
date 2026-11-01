@@ -1,6 +1,6 @@
 # FuBoHeiSt – Fußbodenheizungs-Steuerung
 
-> Eigene, lokale Steuerung der Fußbodenheizung einer Wohnung auf ESP32-Basis.
+> Eigene, lokale Steuerung der Fußbodenheizung einer Wohnung auf ESP32-S3-Basis.
 > Steuert **7 HmIP-VDMOT-Stellmotoren** (3,3 V DC) + **1 Hauptventil** (motorisierter Kugelhahn, 230 V, ein/aus).
 > **Offline-first:** Der Regelkreis läuft komplett lokal – keine Cloud- oder Internet-Abhängigkeit.
 
@@ -41,49 +41,51 @@
 1 H-Brücke je Motor (**4× DRV8833** = 8 Kanäle, 1 Reserve), **1 geteilte Messkette** (nur 1 Motor läuft gleichzeitig).
 
 ```
-                    ┌─────────────────────────────────────────────────┐
-230 V AC ──►[AC-DC 5V]──►[Buck]──► 3.3V_LOGIC (ESP32, Sensoren)       │
-                HLK-PM05           └──► 3.3V_MOTOR ─►[Shunt]─►H-Brücken │
-                                     │                                 │
-                    ESP32            │                                 │
-                     ├─ GPIO ×14 ────► 7× (IN1/IN2) DRV8833            │
-                     ├─ ADC ────────► INA180 (Stall)                   │
-                     ├─ PCNT ───────► Komparator (Ripple)              │
-                     ├─ GPIO ───────► Relais → Hauptventil (230 V)      │
-                     └─ GPIO (1-Wire)► Vorlauf-/Bodenfühler             │
-                    └─────────────────────────────────────────────────┘
+                    +-------------------------------------------+
+extern 5 V -------->| PCB                                       |
+                    |  |- 5 V ----------> ESP32-S3-DevKitC-1    |
+                    |  |                  (eigener LDO -> 3,3 V) |
+                    |  `- ME6217/MP2307 -> 3,3 V_MOTOR           |
+                    |                     -> [Shunt] -> DRV8833  |
+                    +-------------------------------------------+
+
+ESP32-S3 (GPIO)
+  |- 14x IN1/IN2 --> 7 Motoren (4x DRV8833)
+  |- I2C -----------> INA219 (Stall-Erkennung)
+  |- PCNT ----------> TLV3201 (Ripple)  <--  Shunt -> MCP6002
+  |- GPIO ----------> SSR -> Hauptventil (230 V)
+  `- GPIO (1-Wire) -> Vorlauf-/Bodenfuehler (DS18B20)
 ```
 
 ### 3.2 Signalaufbereitung Strommessung
 ```
 Motorstrom → Shunt → Spannung ∝ I
-                       ├─ Tiefpass ──► ADC ──► Stall-Erkennung
+                       ├─ INA219 (I²C) ────────────────► Stall-Erkennung (DC)
                        └─ Hochpass/AC ──► OpAmp ──► Komparator ──► PCNT (Ripple)
 ```
 
 ### 3.3 Bauteileliste (Konzept)
 
 **Hauptplatine**
-| Bauteil | Funktion | Menge |
-|---|---|---|
-| ESP32-WROOM-32E | Controller + WLAN/BLE | 1 |
-| DRV8833 (Dual-H-Brücke) | Motor-Treiber | 4 |
-| INA180 (A2/A4) | High-Side-Strommessung | 1 |
-| Shunt (0,1–0,5 Ω, ≥0,25 W) | Strommessung | 1 |
-| MCP6002 (OpAmp) | Ripple-Verstärkung | 1 |
-| Komparator (TLV3201/MAX9141) | Ripple → Digitalpulse | 1 |
-| RJ12/6P6C-Buchse | Anschluss VDMOT | 7 |
-| Relais 230 V + Optokoppler + Snubber | Hauptventil | 1 |
-| HLK-PM05 (5 V/5 W, isoliert) | 230 V → 5 V | 1 |
-| Buck (AP63356/MP1584) | 5 V → 3,3 V | 1 |
-| Feinsicherung + TVS + Bulk-Elkos | Schutz/Stabilität | div. |
+| Bauteil | Funktion | Menge | Status |
+|---|---|---|---|
+| ESP32-S3-DevKitC-1 (S3-WROOM-1-N16R8) | Controller + WLAN/BLE 5 | 1 | vorhanden |
+| DRV8833 (Dual-H-Brücke) | Motor-Treiber | 4 | kaufen |
+| INA219 | Strommessung (Stall, I²C) | 1 | vorhanden |
+| Shunt (0,1–0,5 Ω) | Strommessung | 1 | vorhanden (MELF) |
+| MCP6002 (OpAmp) | Ripple-Verstärkung | 1 | kaufen |
+| TLV3201 (Komparator) | Ripple → Digitalpulse | 1 | kaufen |
+| RJ12/6P6C-Buchse | Anschluss VDMOT | 7 | kaufen |
+| SSR (3,3 V, 40 A) | Hauptventil (230 V) | 1 | vorhanden |
+| ME6217 (od. MP2307) | 5 V → 3,3 V_MOTOR | 1 | vorhanden |
+| externes 5-V-Netzteil | Versorgung | 1 | vorhanden |
 
-**Sensorik (fertig gekauft)**
-| Bauteil | Funktion | Menge |
-|---|---|---|
-| BLE-Funksensor (Xiaomi LYWSD03MMC o. ä.) | Raumtemp. | 6 |
-| DS18B20-Anlegefühler | Vorlauf | 1 |
-| DS18B20-Bodenfühler | optional | 0–1 |
+**Sensorik**
+| Bauteil | Funktion | Menge | Status |
+|---|---|---|---|
+| BLE-Funksensor (Modell offen) | Raumtemp. | 6 | offen |
+| DS18B20-Anlegefühler | Vorlauf | 1 | kaufen |
+| DS18B20-Bodenfühler | optional | 0–1 | optional |
 
 ## 4. Firmware-Architektur
 
@@ -91,7 +93,7 @@ Motorstrom → Shunt → Spannung ∝ I
 | Modul | Aufgabe |
 |---|---|
 | `MotorDriver` | DRV8833 IN1/IN2: Richtung, PWM, Brake/Coast |
-| `CurrentSense` | ADC-Messung des Shunts (Mittelwert) |
+| `CurrentSense` | INA219 (I²C) auslesen + Mittelwert |
 | `RippleCounter` | PCNT zählt Kommutator-Pulse (Richtung kennt die Firmware) |
 | `StallDetector` | Strom > Schwelle für X ms → Stop |
 | `ValveController` | Zustandsmaschine je Zone |
@@ -104,7 +106,7 @@ Motorstrom → Shunt → Spannung ∝ I
 ### 4.2 Positionsregelung (Zustandsmaschine je Zone)
 ```
 IDLE → MOVE → STOP → IDLE
-MOVE: H-Brücke ein, Richtung setzen, PCNT starten, ADC überwachen
+MOVE: H-Brücke ein, Richtung setzen, PCNT starten, INA219 überwachen
 STOP-Bedingungen (erste gewinnt):
   1. PCNT erreicht Ziel-Pulse → Brake → Position = Ziel
   2. Strom > Stall-Schwelle (entprellt) → Brake → Endanschlag
@@ -142,23 +144,28 @@ fbh/config/...                 → Parameter (publish)
 - MQTT-Broker + OTA-Einstellungen
 
 ## 6. Offene Punkte (TODO)
-- [ ] Hauptventil-Verdrahtung: 2-adrig (→ 1 Relais) oder 3-adrig (→ 2 Relais)?
-- [ ] BLE-Sensor-Modell festlegen (Xiaomi LYWSD03MMC?)
+- [x] Hauptventil: SSR (3,3 V, 40 A) – geklärt
+- [ ] BLE-Sensor-Modell festlegen (LYWSD03MMC hat Versions-Risiko → Alternativen, siehe `docs/sensorik.md`)
 - [ ] Vorlauftemperatur messen → entscheidet, ob ein Bodensensor nötig ist
 - [ ] Holz-Bodentemperatur-Grenzwert final nach Herstellerangabe prüfen
-- [ ] Finale Pin-Belegung (im Schaltplan)
+- [ ] Pin-Belegung finalisieren (Vorschlag in `docs/schaltplan-konzept.md`)
 
 ## 7. Nächste Schritte
-1. EasyEDA-Schaltplan (Treiber + Messkette + Relais + Versorgung)
-2. Firmware-Grundgerüst (PlatformIO + Arduino-ESP32)
-3. Kalibrier-/Logging-Phase → thermisches Modell (KI-Tuning)
+1. Schaltplan-/Netzlisten-Konzept finalisieren (`docs/schaltplan-konzept.md`)
+2. EasyEDA-Schaltplan + Trägerplatine (DRV8833, INA219, Ripple-Kette, SSR)
+3. Firmware-Grundgerüst (PlatformIO + Arduino-ESP32, ESP32-S3)
+4. Kalibrier-/Logging-Phase → thermisches Modell (KI-Tuning)
 
 ### Geplante Projektstruktur
 ```
 FuBoHeiSt/
-├── README.md        (diese Spec)
-├── hardware/        (EasyEDA-Schaltplan/-PCB, später)
-├── firmware/        (PlatformIO-Projekt, später)
-└── docs/            (weitere Doku, später)
+├── README.md                  (Spec)
+├── AGENTS.md                  (Arbeitsweise für Agenten)
+├── .clinerules                (Cline-Regeln)
+├── docs/schaltplan-konzept.md (Netzlisten-Konzept + Pinbelegung)
+├── docs/bom.md                (Stückliste: vorhanden vs. kaufen)
+├── docs/sensorik.md           (Raumfühler-Recherche, offen)
+├── hardware/                  (EasyEDA, später)
+└── firmware/                  (PlatformIO, später)
 ```
 

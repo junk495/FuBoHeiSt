@@ -1,0 +1,11 @@
+# Cline-Regeln für FuBoHeiSt
+
+1. Zu Beginn jeder Aufgabe `AGENTS.md` und `README.md` lesen.
+2. Nicht raten oder interpretieren – nur dokumentierte Fakten verwenden; bei Unklarheit nachfragen.
+3. Doku & Kommentare auf Deutsch, Code-Identifier auf Englisch.
+4. Firmware: PlatformIO + Arduino-ESP32 (C++). Änderungen nach Möglichkeit mit `pio run` bauen und validieren.
+5. Nur innerhalb des Projektordners `D:\forgejo\FuBoHeiSt` arbeiten; neue Dateien in die passenden Ordner (`hardware/`, `firmware/`, `docs/`).
+6. Entscheidungsänderungen immer in `README.md` nachziehen.
+7. Offline-first: kein Cloud-/Internet-Zwang im Regelkreis (MQTT nur lokal).
+8. 230 V nur am SSR-Ausgang – nie Mains auf die Logik legen.
+9. Pin-/Bauteil-Belegung aus `docs/` verwenden, nicht improvisieren.
