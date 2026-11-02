@@ -38,7 +38,7 @@ Stand: vor Schaltplan-Erstellung.
 
 ## 3. Leiterbahnen & Routing
 
-- **RJ12-Motorleitungen** (AOUT1/AOUT2, BOUT1/BOUT2 → Würth 615006138421, Pin 3+4): **0,4–0,5 mm** Breite.
+- **XH2.54-Motorleitungen** (AOUT1/AOUT2, BOUT1/BOUT2 → XH2.54 2-pol, Pin 1+2): **0,4–0,5 mm** Breite.
 - **ISEN-Shunt:** alle 8 AISEN/BISEN → gemeinsamer Knoten → 2× 1 Ω 0805 parallel (= 0,5 Ω) → GND. **Abgriff für R1=1 kΩ + C1=100 nF vom gemeinsamen Knoten** (vor den Widerständen); Verbindung zum MCP602 kurz halten, fern vom SSR.
 - **I²C (SDA/SCL):** 4,7 kΩ Pullups nahe am INA219.
 - **1-Wire (GPIO40):** 4,7 kΩ Pullup.
@@ -47,7 +47,7 @@ Stand: vor Schaltplan-Erstellung.
 ## 4. Versorgung & Entkopplung
 
 - 5-V-Eingang: **Feinsicherung + TVS**.
-- ME6217: 100 nF + 10/22 µF Bulk am Ausgang.
+- ME6217: 100 nF + 10 µF Bulk am Ausgang.
 - 3,3 V_MOTOR → 0,5 Ω Shunt (INA219, 2× 1 Ω parallel) → VM aller DRV8833.
 - DevKitC-1: 5 V am 5V-Pin (eigener Bord-LDO erzeugt das 3,3 V für das ESP32-S3).
 

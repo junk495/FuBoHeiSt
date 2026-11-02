@@ -13,7 +13,6 @@ Stand: vor Schaltplan. Vollständige Liste aller PCB-Bauteile mit Mengen.
 | MCP602-I/SN (SOIC-8) | 1 | ✅ haben |
 | LM393DR2G (SOIC-8) | 1 | ✅ bestellt |
 | ME6217C33M5G (SOT-23-5) | 1 | ✅ haben |
-| AP63205WU-7 (TSOT-23-6) | 1 | ✅ haben (nur bei 12-V-Einspeisung) |
 | SS8050 (SOT-23) | 2 | ✅ haben (SSR- + Buzzer-Treiber) |
 | SSR (3,3 V, 40 A) | 1 | ✅ haben |
 
@@ -40,7 +39,6 @@ Stand: vor Schaltplan. Vollständige Liste aller PCB-Bauteile mit Mengen.
 | 10 nF | 8 | Ladungspumpe (2 je DRV8833) |
 | 100 nF | 6 | C1 + 3× IC-Abblock + ME6217-Eingang + Reserve |
 | 10 µF | 6 | C2 + 4× VINT + ME6217-Ausgang |
-| 22 µF | 1 | AP63205-Ausgang (optional) |
 
 ## Dioden & Schutz
 
@@ -50,20 +48,13 @@ Stand: vor Schaltplan. Vollständige Liste aller PCB-Bauteile mit Mengen.
 | TVS SMAJ5.0A | 1 | 🛒 kaufen (Überspannungsschutz, optional) |
 | PTC-Sicherung 1812L300 | 1 | ✅ haben |
 
-## Induktivität
-
-| Bauteil | Menge | Status |
-|---|---|---|
-| 10 µH (1,84 A) | 1 | ✅ haben (AP63205, optional) |
-
 ## Verbinder & Sonstiges
 
 | Bauteil | Menge | Status |
 |---|---|---|
 | Buzzer MLT-8540H | 1 | ✅ haben |
-| Würth 615006138421 (RJ12 6P6C) | 7 | ✅ bestellt |
 | Buchsenleiste 1×22 (RM 2,54 mm) | 2 | 🛒 kaufen (DevKitC-1-Steckplatz) |
-| XH2.54 2-pol | 2 | ✅ haben (5-V-Eingang + SSR-Steuerung) |
+| XH2.54 2-pol (HX-XH2.54-2PZZ) | 9 | ✅ haben (7× Motor + 5-V-Eingang + SSR-Steuerung) |
 | XH2.54 3-pol | 1 | ✅ haben (1-Wire DS18B20) |
 | DS18B20-Anlegefühler | 1 | 🛒 kaufen |
 

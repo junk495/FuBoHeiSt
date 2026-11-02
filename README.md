@@ -17,7 +17,7 @@
 
 ### Technische Rahmenbedingungen HmIP-VDMOT
 - Reiner DC-Getriebemotor, 3,3 V, Blockierstrom (Stall) ≈ 120 mA.
-- RJ12/6P6C-Stecker, nur die 2 mittleren Adern belegt.
+- 4P4C-Stecker (RJ9/RJ10-Typ) am Motor – Kabel wird gekürzt, PCB-Anschluss über XH2.54 2-pol.
 - Richtung über Umpolung → H-Brücke (DRV8833).
 - Endanschlag über Stall-Detection (Stromanstieg), Zwischenpositionen über Ripple-Counting.
 - Getriebe selbsthemmend → kein Haltestrom nötig.
@@ -78,7 +78,7 @@ Motorstrom:
 | Shunt 2× 1 Ω 0805 parallel = 0,5 Ω (Low-Side ISEN) | Strommessung | 2 | haben |
 | MCP602 (OpAmp, SOIC-8) | Ripple-Verstärkung | 1 | vorhanden |
 | LM393DR2G (Komparator) | Ripple → Digitalpulse | 1 | bestellt |
-| RJ12/6P6C-Buchse | Anschluss VDMOT | 7 | bestellt |
+| XH2.54 2-pol | Anschluss VDMOT (Motor, 7×) | 7 | haben |
 | SSR (3,3 V, 40 A) | Hauptventil (230 V) | 1 | vorhanden |
 | ME6217 (LDO) | 5 V → 3,3 V_MOTOR | 1 | vorhanden |
 | externes 5-V-Netzteil | Versorgung | 1 | kaufen (falls nicht vorhanden) |

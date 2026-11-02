@@ -13,14 +13,13 @@ Format wie in `can_bus.md`: Netzliste als `RefDes.Pin`.
 | U7 | MCP602-I/SN (SOIC-8) | Ripple-Messung |
 | U8 | LM393DR2G (SOIC-8) | Ripple-Messung |
 | U9 | ME6217C33M5G (SOT-23-5) | Power |
-| U10 | AP63205WU-7 (TSOT-23-6, opt.) | Power |
 | Q1 | SS8050 (SOT-23) – SSR-Treiber | Ausgänge |
 | Q2 | SS8050 (SOT-23) – Buzzer-Treiber | Ausgänge |
 | D1 | 1N4148W (SOD-123) – Buzzer-Freilauf | Ausgänge |
 | D2 | TVS SMAJ5.0A – Eingangsschutz (opt.) | Power |
 | F1 | PTC 1812L300 | Power |
 | BZ1 | Buzzer MLT-8540H | Ausgänge |
-| CN1–CN7 | RJ12 6P6C (Würth 615006138421) | Motor-Treiber |
+| CN1–CN7 | XH2.54 2-pol | Motor-Treiber |
 | CN8 | XH2.54 2-pol (5-V-Eingang) | Power |
 | CN9 | XH2.54 2-pol (SSR-Steuerung) | Ausgänge |
 | CN10 | XH2.54 3-pol (1-Wire/DS18B20) | 1-Wire |
@@ -46,4 +45,4 @@ Format wie in `can_bus.md`: Netzliste als `RefDes.Pin`.
 | BUZZER | GPIO39 → Q2 (Buzzer) |
 | 1WIRE | GPIO40 → CN10 (DS18B20) |
 | ISEN | gemeinsamer AISEN/BISEN-Knoten (Low-Side-Shunt) |
-| M1_A/M1_B … M7_A/M7_B | Motor-Ausgänge zu RJ12 |
+| M1_A/M1_B … M7_A/M7_B | Motor-Ausgänge zu XH2.54 |

@@ -1,7 +1,7 @@
-# 02 – Motor-Treiber (DRV8833 + RJ12)
+# 02 – Motor-Treiber (DRV8833 + XH2.54)
 
 > Zweck: 7 Ventile (HmIP-VDMOT) über 4× DRV8833 (7 Kanäle + 1 Reserve).
-> Ladungspumpe, nSLEEP/nFAULT, Ausgänge zu RJ12 (nur Pin 3+4).
+> Ladungspumpe, nSLEEP/nFAULT, Ausgänge zu XH2.54 2-pol (Pin 1+2).
 > RefDes/Netze: siehe `00-referenz.md`.
 
 ## 1. Übersicht
@@ -25,19 +25,19 @@ GPIO18 ─► nSLEEP (alle)   ·   GPIO21 ◄─ nFAULT (alle, wire-AND)
 | C3–C6 | 10 µF | 0805 | — | VINT (1 je Chip) |
 | C7–C14 | 10 nF | 0603 | — | Ladungspumpe (2 je Chip) |
 | R9 | 10 kΩ | 0805 | — | nSLEEP-Pulldown |
-| CN1–CN7 | RJ12 6P6C | Würth | 615006138421 | Ventil-Anschluss |
+| CN1–CN7 | XH2.54 2-pol | THT 2,54 mm | — | Ventil-Anschluss |
 
 ## 3. DRV8833 – Pinbelegung (HTSSOP-16)
 
 | Pin | Name | Funktion | Anschluss |
 |---|---|---|---|
 | 1 | nSLEEP | Enable (HIGH=aktiv) | GPIO18 + R9→GND |
-| 2 | AOUT1 | Brücke A, Ausgang 1 | RJ12 Pin 3 |
+| 2 | AOUT1 | Brücke A, Ausgang 1 | XH2.54 Pin 1 |
 | 3 | AISEN | Sense A | ISEN |
-| 4 | AOUT2 | Brücke A, Ausgang 2 | RJ12 Pin 4 |
-| 5 | BOUT2 | Brücke B, Ausgang 2 | RJ12 Pin 4 |
+| 4 | AOUT2 | Brücke A, Ausgang 2 | XH2.54 Pin 2 |
+| 5 | BOUT2 | Brücke B, Ausgang 2 | XH2.54 Pin 2 |
 | 6 | BISEN | Sense B | ISEN |
-| 7 | BOUT1 | Brücke B, Ausgang 1 | RJ12 Pin 3 |
+| 7 | BOUT1 | Brücke B, Ausgang 1 | XH2.54 Pin 1 |
 | 8 | nFAULT | Fehler (LOW) | GPIO21 (wire-AND + Pullup) |
 | 9 | AIN1 | Eingang A1 | GPIO |
 | 10 | AIN2 | Eingang A2 | GPIO |
@@ -71,13 +71,13 @@ GPIO18 ─► nSLEEP (alle)   ·   GPIO21 ◄─ nFAULT (alle, wire-AND)
 | nSLEEP | U2.1, U3.1, U4.1, U5.1, R9.1 |
 | nFAULT | U2.8, U3.8, U4.8, U5.8 |
 | ISEN | U2.3, U2.6, U3.3, U3.6, U4.3, U4.6, U5.3, U5.6 |
-| M1_A / M1_B | U2.2 / U2.4 → CN1.3 / CN1.4 |
-| M2_A / M2_B | U2.7 / U2.5 → CN2.3 / CN2.4 |
-| M3_A / M3_B | U3.2 / U3.4 → CN3.3 / CN3.4 |
-| M4_A / M4_B | U3.7 / U3.5 → CN4.3 / CN4.4 |
-| M5_A / M5_B | U4.2 / U4.4 → CN5.3 / CN5.4 |
-| M6_A / M6_B | U4.7 / U4.5 → CN6.3 / CN6.4 |
-| M7_A / M7_B | U5.2 / U5.4 → CN7.3 / CN7.4 |
+| M1_A / M1_B | U2.2 / U2.4 → CN1.1 / CN1.2 |
+| M2_A / M2_B | U2.7 / U2.5 → CN2.1 / CN2.2 |
+| M3_A / M3_B | U3.2 / U3.4 → CN3.1 / CN3.2 |
+| M4_A / M4_B | U3.7 / U3.5 → CN4.1 / CN4.2 |
+| M5_A / M5_B | U4.2 / U4.4 → CN5.1 / CN5.2 |
+| M6_A / M6_B | U4.7 / U4.5 → CN6.1 / CN6.2 |
+| M7_A / M7_B | U5.2 / U5.4 → CN7.1 / CN7.2 |
 
 ## 6. Hinweise
 
@@ -85,4 +85,4 @@ GPIO18 ─► nSLEEP (alle)   ·   GPIO21 ◄─ nFAULT (alle, wire-AND)
 - nSLEEP (GPIO18) mit **10 kΩ Pulldown** → Treiber bleiben beim ESP32-Boot deaktiviert.
 - nFAULT (GPIO21) aller Chips wire-AND (open-drain) + Pullup.
 - Reserve-Kanal (U5-B): BIN1/BIN2 fest auf GND.
-- RJ12: nur die **mittleren Kontakte Pin 3 + 4** belegen.
+- XH2.54: Pin 1 + 2 (Polarität egal – die Umpolung übernimmt die H-Brücke).
