@@ -26,11 +26,11 @@
 
 ## 2. Versorgungs-Pins (U1)
 
-| Pin | Netz |
-|---|---|
-| 5V | +5V |
-| 3V3 | +3V3 (Logik-Rail, für Pullups + INA219-VS) |
-| GND | GND |
+| Pin | Footprint-Pin | Netz |
+|---|---|---|
+| 5V | 21 | +5V |
+| 3V3 | 1, 2 | +3V3 (Logik-Rail, für Pullups + INA219-VS) |
+| GND | 22, 23, 24, 44 | GND |
 
 ## 3. Netznamen (Motor-Eingänge)
 

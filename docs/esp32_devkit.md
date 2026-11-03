@@ -2,7 +2,7 @@
 
 > Referenzblatt für das Steckmodul **ESP32-S3-DevKitC-1** (U1), Modul **ESP32-S3-WROOM-1-N16R8**
 > (16 MB Flash, 8 MB PSRAM, 2,4 GHz WiFi + Bluetooth LE 5).
-> Die projektbezogene Pin-Belegung für FuBoHeiSt steht in [`docs/schaltplan-konzept.md`](schaltplan-konzept.md) §3.
+> Die projektbezogene Pin-Belegung für FuBoHeiSt steht in [`docs/schaltung/07-controller.md`](schaltung/07-controller.md).
 
 ## Technische Daten (DevKitC-1)
 

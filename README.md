@@ -164,7 +164,7 @@ fbh/config/...                 → Parameter (publish)
 - [x] Pin-Belegung finalisiert
 
 ## 7. Nächste Schritte
-1. Schaltplan-/Netzlisten-Konzept finalisieren (`docs/schaltplan-konzept.md`)
+1. Schaltplan-/Netzlisten-Konzept finalisieren (`docs/schaltung/` 00–07)
 2. EasyEDA-Schaltplan + Trägerplatine (DRV8833, INA219, Ripple-Kette, SSR)
 3. Firmware-Grundgerüst (PlatformIO + Arduino-ESP32, ESP32-S3)
 4. Kalibrier-/Logging-Phase → thermisches Modell (KI-Tuning)

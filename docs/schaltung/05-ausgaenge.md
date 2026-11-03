@@ -38,11 +38,12 @@ GPIO39 ─► R15 (1k) ─► Q2 (SS8050) ─► BZ1 (Buzzer)  [D1 Freilauf]
 | Q2_BASE | R15.2, R16.1, Q2.B |
 | Q2_EMITTER | Q2.E, R16.2, GND |
 | BUZ_LO | Q2.C, BZ1.2, D1.A |
-| +3V3 | BZ1.1, D1.K |
+| +3V3 | BZ1.1, D1.K, CN10.2 |
 
 ## 4. Hinweise
 
 - SSR (40 A) schaltet 230 V zum Kugelhahn – **nur am SSR-Ausgang** (Snubber/Varistor).
+- **SSR-Verdrahtung (CN10):** Pin 2 (`+`) an **+3V3**, Pin 1 (`−`) an `Q1.C` (Low-Side-Schalter).
 - **SSR-Mindestlast prüfen:** 40-A-SSR an kleinem Kugelhahn (< 50 mA) schaltet evtl. nicht sauber → ggf. kleines Relais/2-A-SSR (z. B. Omron G3MB-202P).
 - Buzzer ist **passiv** → GPIO39 liefert Rechtecksignal (z. B. 2,7 kHz) über Q2.
 - D1 (1N4148W) als Freilauf über BZ1: Anode → Kollektor (BUZ_LO), Kathode → +3V3.

@@ -24,8 +24,11 @@ GPIO18 ─► nSLEEP (alle)   ·   GPIO21 ◄─ nFAULT (alle, wire-AND)
 |---|---|---|---|---|
 | U2–U5 | DRV8833CPWPR | HTSSOP-16 | — | 2 H-Brücken je Chip |
 | C3–C6 | 10 µF | 0805 | — | VINT (1 je Chip) |
-| C7–C14 | 10 nF | 0603 | — | Ladungspumpe (2 je Chip) |
+| C7–C10 | 10 nF | 0805 | — | Ladungspumpe VCP→VM (1 je Chip) |
+| C11–C14 | 100 nF | 0805 | — | VM-Entkopplung (1 je Chip) |
+| C20 | 10 µF | 0805 | — | VM-Bulk (nach INA219-Shunt) |
 | R9 | 10 kΩ | 0805 | — | nSLEEP-Pulldown |
+| R21 | 10 kΩ | 0805 | — | nFAULT-Pullup an +3V3 |
 | CN1–CN8 | XH2.54 2-pol | THT 2,54 mm | — | Ventil-Anschluss (7 Zonen + 1 Reserve) |
 
 ## 3. DRV8833 – Pinbelegung (HTSSOP-16)
@@ -40,14 +43,14 @@ GPIO18 ─► nSLEEP (alle)   ·   GPIO21 ◄─ nFAULT (alle, wire-AND)
 | 6 | BISEN | Sense B | ISEN |
 | 7 | BOUT1 | Brücke B, Ausgang 1 | XH2.54 Pin 1 |
 | 8 | nFAULT | Fehler (LOW) | GPIO21 (wire-AND + Pullup) |
-| 9 | AIN1 | Eingang A1 | GPIO |
-| 10 | AIN2 | Eingang A2 | GPIO |
-| 11 | VINT | 1,8-V-Regler | 10 µF → GND |
-| 12 | VM | Motorversorgung | VM (nach INA219-Shunt) |
+| 9 | BIN1 | Eingang B1 | GPIO |
+| 10 | BIN2 | Eingang B2 | GPIO |
+| 11 | VCP | Ladungspumpe | 10 nF → VM (Pin 12) |
+| 12 | VM | Motorversorgung | VM (nach INA219-Shunt) + 100 nF → GND |
 | 13 | GND | Masse | GND |
-| 14 | VCP | Ladungspumpe | 10 nF → VM |
-| 15 | CP2 | Ladungspumpe | 10 nF → CP1 |
-| 16 | CP1 | Ladungspumpe | 10 nF → CP2 |
+| 14 | VINT | Interner 1,8-V-Regler | 10 µF → GND (je Chip, nicht brücken) |
+| 15 | AIN2 | Eingang A2 | GPIO |
+| 16 | AIN1 | Eingang A1 | GPIO |
 | 17 | PowerPAD | Masse | GND (Thermal-Vias) |
 
 ## 4. Kanal-Zuordnung
@@ -67,11 +70,28 @@ GPIO18 ─► nSLEEP (alle)   ·   GPIO21 ◄─ nFAULT (alle, wire-AND)
 
 | Netz | Pins |
 |---|---|
-| VM | U2.12, U3.12, U4.12, U5.12, U2.14, U3.14, U4.14, U5.14 (VCP) |
-| GND | U2.13, U3.13, U4.13, U5.13, U2.17–U5.17 (PowerPAD), C3.2, C4.2, C5.2, C6.2 |
+| VM | U2.12, U3.12, U4.12, U5.12, C7.2, C8.2, C9.2, C10.2, C11.1, C12.1, C13.1, C14.1, C20.1 |
+| GND | U2.13, U3.13, U4.13, U5.13, U2.17–U5.17 (PowerPAD), C3.2, C4.2, C5.2, C6.2, C11.2, C12.2, C13.2, C14.2, R9.2, C20.2 |
+| VINT_U2 | U2.14, C3.1 |
+| VINT_U3 | U3.14, C4.1 |
+| VINT_U4 | U4.14, C5.1 |
+| VINT_U5 | U5.14, C6.1 |
+| VCP_U2 | U2.11, C7.1 |
+| VCP_U3 | U3.11, C8.1 |
+| VCP_U4 | U4.11, C9.1 |
+| VCP_U5 | U5.11, C10.1 |
 | nSLEEP | U2.1, U3.1, U4.1, U5.1, R9.1 |
-| nFAULT | U2.8, U3.8, U4.8, U5.8 |
+| nFAULT | U2.8, U3.8, U4.8, U5.8, R21.1 |
+| +3V3 | R21.2 |
 | ISEN | U2.3, U2.6, U3.3, U3.6, U4.3, U4.6, U5.3, U5.6 |
+| M1_IN1 / M1_IN2 | U2.16 / U2.15 |
+| M2_IN1 / M2_IN2 | U2.9 / U2.10 |
+| M3_IN1 / M3_IN2 | U3.16 / U3.15 |
+| M4_IN1 / M4_IN2 | U3.9 / U3.10 |
+| M5_IN1 / M5_IN2 | U4.16 / U4.15 |
+| M6_IN1 / M6_IN2 | U4.9 / U4.10 |
+| M7_IN1 / M7_IN2 | U5.16 / U5.15 |
+| M8_IN1 / M8_IN2 | U5.9 / U5.10 |
 | M1_A / M1_B | U2.2 / U2.4 → CN1.1 / CN1.2 |
 | M2_A / M2_B | U2.7 / U2.5 → CN2.1 / CN2.2 |
 | M3_A / M3_B | U3.2 / U3.4 → CN3.1 / CN3.2 |
@@ -84,6 +104,7 @@ GPIO18 ─► nSLEEP (alle)   ·   GPIO21 ◄─ nFAULT (alle, wire-AND)
 ## 6. Hinweise
 
 - **PowerPAD (Pin 17) zwingend an GND** (4–6 Thermal-Vias).
+- **Ladungspumpe:** nur **1× 10 nF** zwischen **VCP (Pin 11)** und **VM (Pin 12)** – der DRV8833 hat **keine** CP1/CP2-Pins. Zusätzlich **100 nF** von VM (Pin 12) → GND je Chip.
 - nSLEEP (GPIO18) mit **10 kΩ Pulldown** → Treiber bleiben beim ESP32-Boot deaktiviert.
 - nFAULT (GPIO21) aller Chips wire-AND (open-drain) + Pullup.
 - Reserve-Kanal (U5-B): voll verkabelt (GPIO41/42 → BIN1/BIN2, CN8) als Hot-Swap-Reserve – kein fester Heizkreis.

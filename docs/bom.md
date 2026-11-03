@@ -27,7 +27,7 @@ Stand: vor Schaltplan. Vollständige Liste aller PCB-Bauteile mit Mengen.
 | Wert | Menge | Verwendung |
 |---|---|---|
 | 1 kΩ | 5 | R1, R2, R5 + 2× SS8050-Basis |
-| 10 kΩ | 5 | R4, Rpullup, nSLEEP-Pulldown + 2× SS8050-BE-Pulldown |
+| 10 kΩ | 6 | R4, R8 (LM393-Pullup), R9 (nSLEEP), R21 (nFAULT) + 2× SS8050-BE-Pulldown |
 | 22 kΩ | 2 | R3 (Gain), Rbias (Slicer-Offset) |
 | 4,7 kΩ | 3 | 2× I²C-Pullup + 1-Wire-Pullup |
 | 470 kΩ | 1 | Rhyst (Hysterese) |
@@ -36,9 +36,9 @@ Stand: vor Schaltplan. Vollständige Liste aller PCB-Bauteile mit Mengen.
 
 | Wert | Menge | Verwendung |
 |---|---|---|
-| 10 nF | 8 | Ladungspumpe (2 je DRV8833) |
-| 100 nF | 6 | C1 + 3× IC-Abblock + ME6217-Eingang + Reserve |
-| 10 µF | 6 | C2 + 4× VINT + ME6217-Ausgang |
+| 10 nF | 4 | Ladungspumpe VCP→VM (1 je DRV8833) |
+| 100 nF | 10 | C1 + 3× IC-Abblock + 4× VM-DRV8833 + ME6217-Eingang + Reserve |
+| 10 µF | 7 | C2 + 4× VINT + ME6217-Ausgang + C20 (VM-Bulk) |
 
 ## Dioden & Schutz
 

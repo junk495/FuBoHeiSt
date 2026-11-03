@@ -38,8 +38,8 @@ CN9 (5V) ─► F1 (PTC) ─► +5V ─┬─► U9 (ME6217) ─► +3V3_MOTOR �
 | Netz | Pins |
 |---|---|
 | 5V_IN | CN9.1, F1.1 |
-| +5V | F1.2, U9.1 (VIN), U9.3 (CE), U1-5V, U7.8 (VDD), U8.8 (VCC), D2.1 |
-| +3V3_MOTOR | U9.5 (VOUT), C18.1, C19.1 |
+| +5V | F1.2, U9.1 (VIN), U9.3 (CE), C18.1, U1-5V, U7.8 (VDD), U8.8 (VCC), D2.1 |
+| +3V3_MOTOR | U9.5 (VOUT), C19.1 |
 | GND | CN9.2, U9.2 (GND), C18.2, C19.2, D2.2 |
 
 ## 5. Hinweise

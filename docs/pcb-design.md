@@ -1,6 +1,6 @@
 # PCB-Design & Layout-Notizen
 
-Praktische Merker für das Zeichnen in EasyEDA Pro – geht über das Netzlisten-Konzept (`schaltplan-konzept.md`) hinaus.
+Praktische Merker für das Zeichnen in EasyEDA Pro – geht über das Netzlisten-Konzept (`docs/schaltung/00-referenz.md` … `07-controller.md`) hinaus.
 Stand: vor Schaltplan-Erstellung.
 
 ## 1. Allgemeine Layout-Prinzipien
@@ -15,9 +15,9 @@ Stand: vor Schaltplan-Erstellung.
 ### DRV8833CPWPR (HTSSOP-16, PowerPAD)
 - **PowerPAD (Pin 17, Unterseite) zwingend an GND** löten, mit **4–6 Thermal-Vias** in die untere Ground-Plane.
 - **Ladungspumpe (Pflicht, direkt am Chip):**
-  - 10 nF zwischen **VCP (Pin 14)** und **VM (Pin 12)**.
-  - 10 nF zwischen **CP1 (Pin 16)** und **CP2 (Pin 15)**.
-  - 10 µF an **VINT (Pin 11)** → GND.
+  - 10 nF zwischen **VCP (Pin 11)** und **VM (Pin 12)** (nur **ein** Kondensator – der DRV8833 hat **keine** CP1/CP2-Pins).
+  - 10 µF an **VINT (Pin 14)** → GND (**je Chip getrennt**, nicht brücken).
+  - 100 nF an **VM (Pin 12)** → GND (Entkopplung).
 - **nSLEEP** an GPIO18 + **10 kΩ Pull-down** an GND.
 - **Reserve-Kanal (Chip 4 = U5, Kanal B):** voll verkabelt (GPIO41/42 → BIN1/BIN2, CN8) als Hot-Swap-Reserve – kein fester Heizkreis.
 
