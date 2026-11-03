@@ -180,8 +180,8 @@ FuBoHeiSt/
 ├── docs/esp32_devkit.md       (DevKitC-1-Referenz: Pinout + Hinweise)
 ├── docs/bom.md                (Stückliste: vorhanden vs. kaufen)
 ├── docs/schaltung/            (Schaltungs-Gruppen 00–07, EasyEDA-Netzlisten)
-├── docs/sensorik.md           (Raumfühler-Recherche, offen)
+├── docs/sensorik.md           (Raumfühler-Recherche: BTHome v2, Modell offen)
 ├── hardware/                  (EasyEDA, später)
-└── firmware/                  (PlatformIO, später)
+└── firmware/                  (PlatformIO, Stufe 1: Bringup)
 ```
 
