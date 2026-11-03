@@ -6,7 +6,7 @@
 ## 1. Übersicht
 
 ```
-CN8 (5V) ─► F1 (PTC) ─► +5V ─┬─► U9 (ME6217) ─► +3V3_MOTOR ─► (INA219-Shunt) ─► DRV8833 VM
+CN9 (5V) ─► F1 (PTC) ─► +5V ─┬─► U9 (ME6217) ─► +3V3_MOTOR ─► (INA219-Shunt) ─► DRV8833 VM
                               ├─► U1 (DevKitC-1, 5V-Pin)
                               ├─► U7 (MCP602, VDD)  ── 5 V
                               ├─► U8 (LM393, VCC)   ── 5 V
@@ -16,7 +16,7 @@ CN8 (5V) ─► F1 (PTC) ─► +5V ─┬─► U9 (ME6217) ─► +3V3_MOTOR �
 
 | Ref | Bauteil / Wert | Gehäuse | LCSC | Funktion |
 |---|---|---|---|---|
-| CN8 | XH2.54 2-pol | THT 2,54 mm | — | 5-V-Eingang |
+| CN9 | XH2.54 2-pol | THT 2,54 mm | — | 5-V-Eingang |
 | F1 | PTC 1812L300 (24 V, 3 A) | 1812 | C20627123 | rücksetzbare Sicherung |
 | D2 | TVS SMAJ5.0A | SMA | — | Überspannungsschutz (opt.) |
 | U9 | ME6217C33M5G (3,3-V-LDO) | SOT-23-5 | C427602 | 5 V → 3,3 V_MOTOR |
@@ -37,10 +37,10 @@ CN8 (5V) ─► F1 (PTC) ─► +5V ─┬─► U9 (ME6217) ─► +3V3_MOTOR �
 
 | Netz | Pins |
 |---|---|
-| 5V_IN | CN8.1, F1.1 |
+| 5V_IN | CN9.1, F1.1 |
 | +5V | F1.2, U9.1 (VIN), U9.3 (CE), U1-5V, U7.8 (VDD), U8.8 (VCC), D2.1 |
 | +3V3_MOTOR | U9.5 (VOUT), C18.1, C19.1 |
-| GND | CN8.2, U9.2 (GND), C18.2, C19.2, D2.2 |
+| GND | CN9.2, U9.2 (GND), C18.2, C19.2, D2.2 |
 
 ## 5. Hinweise
 

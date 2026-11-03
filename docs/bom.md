@@ -54,7 +54,7 @@ Stand: vor Schaltplan. Vollständige Liste aller PCB-Bauteile mit Mengen.
 |---|---|---|
 | Buzzer MLT-8540H | 1 | ✅ haben |
 | Buchsenleiste 1×22 (RM 2,54 mm) | 2 | 🛒 kaufen (DevKitC-1-Steckplatz) |
-| XH2.54 2-pol (HX-XH2.54-2PZZ) | 9 | ✅ haben (7× Motor + 5-V-Eingang + SSR-Steuerung) |
+| XH2.54 2-pol (HX-XH2.54-2PZZ) | 10 | ✅ haben (8× Motor: 7 Heizkreise + 1 Reserve + 5-V-Eingang + SSR-Steuerung) |
 | XH2.54 3-pol | 1 | ✅ haben (1-Wire DS18B20) |
 | DS18B20-Anlegefühler | 1 | 🛒 kaufen |
 

@@ -1,7 +1,7 @@
 # FuBoHeiSt – Fußbodenheizungs-Steuerung
 
 > Eigene, lokale Steuerung der Fußbodenheizung einer Wohnung auf ESP32-S3-Basis.
-> Steuert **7 HmIP-VDMOT-Stellmotoren** (3,3 V DC) + **1 Hauptventil** (motorisierter Kugelhahn, 230 V, ein/aus).
+> Steuert **8 HmIP-VDMOT-Stellmotoren** (3,3 V DC; 7 Heizkreise + 1 Reserve-Kanal) + **1 Hauptventil** (motorisierter Kugelhahn, 230 V, ein/aus).
 > **Offline-first:** Der Regelkreis läuft komplett lokal – keine Cloud- oder Internet-Abhängigkeit.
 
 > **Gesamtkonzept** (Was/Warum/Wie + KI-Integration): siehe [`docs/gesamtkonzept.md`](docs/gesamtkonzept.md).
@@ -34,14 +34,14 @@
 | 6 | Schlafzimmer | Holz | 27 °C | 1 |
 | 7 | Kinderzimmer | Holz | 27 °C | 1 |
 
-- **7 Zonen, 7 Ventile, 6 Raumfühler** (Küche + Wohnzimmer = ein offener Raum mit 2 getrennten Kreisen → 1 gemeinsamer Fühler, 2 unabhängige Ventile mit unterschiedlichen Boden-Grenzen).
+- **7 Zonen, 7 Ventile, 6 Raumfühler** (+ 1 verkabelter Reserve-Kanal) (Küche + Wohnzimmer = ein offener Raum mit 2 getrennten Kreisen → 1 gemeinsamer Fühler, 2 unabhängige Ventile mit unterschiedlichen Boden-Grenzen).
 - **1 Vorlauftemperatur-Fühler** (DS18B20-Anlegefühler, 1-Wire).
 - **Bodentemperatur modellbasiert** (Kalibrierphase: Messung → Modell); **optional 1 Bodensensor** nur, falls Vorlauf > ~32 °C.
 
 ## 3. Hardware-Architektur
 
 ### 3.1 Topologie (Variante A – festgelegt)
-1 H-Brücke je Motor (**4× DRV8833** = 8 Kanäle, 1 Reserve), **1 geteilte Messkette** (nur 1 Motor läuft gleichzeitig).
+1 H-Brücke je Motor (**4× DRV8833** = 8 Kanäle: 7 Heizkreise + 1 voll verkabelter Reserve-Kanal für Hot-Swap), **1 geteilte Messkette** (nur 1 Motor läuft gleichzeitig).
 
 ```
                     +-------------------------------------------+
@@ -53,7 +53,7 @@ extern 5 V -------->| PCB                                       |
                     +-------------------------------------------+
 
 ESP32-S3 (GPIO)
-  |- 14x IN1/IN2 --> 7 Motoren (4x DRV8833)
+  |- 16x IN1/IN2 --> 8 Motoren (4x DRV8833)
   |- I2C -----------> INA219 (Stall-Erkennung)
   |- PCNT ----------> LM393 (Ripple)  <--  Shunt (ISEN, Low-Side) -> MCP602
   |- GPIO ----------> SSR -> Hauptventil (230 V)
@@ -78,7 +78,7 @@ Motorstrom:
 | Shunt 2× 1 Ω 0805 parallel = 0,5 Ω (Low-Side ISEN) | Strommessung | 2 | haben |
 | MCP602 (OpAmp, SOIC-8) | Ripple-Verstärkung | 1 | vorhanden |
 | LM393DR2G (Komparator) | Ripple → Digitalpulse | 1 | bestellt |
-| XH2.54 2-pol | Anschluss VDMOT (Motor, 7×) | 7 | haben |
+| XH2.54 2-pol | Anschluss VDMOT (Motor, 8×: 7 Heizkreise + 1 Reserve) | 8 | haben |
 | SSR (3,3 V, 40 A) | Hauptventil (230 V) | 1 | vorhanden |
 | ME6217 (LDO) | 5 V → 3,3 V_MOTOR | 1 | vorhanden |
 | externes 5-V-Netzteil | Versorgung | 1 | kaufen (falls nicht vorhanden) |
@@ -105,6 +105,8 @@ Motorstrom:
 | `Thermostat` | PI + Vorsteuerung + Boden-/Frost-Grenzen |
 | `Comm` | MQTT + OTA |
 | `Supervisor` | Timeouts, Watchdog, Fehlerverhalten |
+
+> **Reserve-Kanal (8. Motor):** Der 8. Kanal (U5-B, GPIO41/42 → CN8) ist firmware-seitig als normaler Motor-Kanal adressierbar, wird aber nicht in den 7-Zonen-Regelkreis eingebunden. Bei Kanal-Ausfall lässt sich der betroffene Motor auf CN8 umstecken (nur im Coast/Idle) und per Konfig demselben Regelauftrag zuordnen (Hot-Swap).
 
 ### 4.2 Positionsregelung (Zustandsmaschine je Zone)
 ```

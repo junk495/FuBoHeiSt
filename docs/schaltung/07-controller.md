@@ -16,6 +16,7 @@
 | 12 / 13 | 18 / 19 | Motor 5 IN1/IN2 | M5_IN1 / M5_IN2 | out |
 | 14 / 15 | 20 / 8 | Motor 6 IN1/IN2 | M6_IN1 / M6_IN2 | out |
 | 16 / 17 | 9 / 10 | Motor 7 IN1/IN2 | M7_IN1 / M7_IN2 | out |
+| 41 / 42 | 38 / 39 | Motor 8 IN1/IN2 (Reserve) | M8_IN1 / M8_IN2 | out |
 | 18 | 11 | nSLEEP | nSLEEP | out |
 | 21 | 27 | nFAULT | nFAULT | in |
 | 38 | 35 | Ripple-PCNT | RIPPLE | in |
@@ -41,11 +42,11 @@
 | 7 | M2_IN2 | 15 | M6_IN2 |
 | 8 | M3_IN1 | 16 | M7_IN1 |
 | 9 | M3_IN2 | 17 | M7_IN2 |
-| 10 | M4_IN1 | | |
-| 11 | M4_IN2 | | |
+| 10 | M4_IN1 | 41 | M8_IN1 |
+| 11 | M4_IN2 | 42 | M8_IN2 |
 
 ## 4. Hinweise
 
 - **Gemieden:** Strapping (GPIO0/3/45/46), USB-OTG (19/20), UART0 (43/44), OPI-PSRAM (GPIO33–37, N16R8).
-- **JTAG (39–42) frei nutzbar** als normale GPIO (39 = Buzzer, 40 = 1-Wire).
+- **JTAG (39–42) frei nutzbar** als normale GPIO (39 = Buzzer, 40 = 1-Wire, 41/42 = Motor 8 Reserve).
 - Footprint-Pin-Nummern ≠ GPIO-Nummern (z. B. GPIO40 = Footprint-Pin 37) – im Symbol prüfen.

@@ -1,6 +1,6 @@
 # 02 – Motor-Treiber (DRV8833 + XH2.54)
 
-> Zweck: 7 Ventile (HmIP-VDMOT) über 4× DRV8833 (7 Kanäle + 1 Reserve).
+> Zweck: 8 Ventil-Anschlüsse (7 Zonen + 1 Reserve) über 4× DRV8833 (8 Kanäle).
 > Ladungspumpe, nSLEEP/nFAULT, Ausgänge zu XH2.54 2-pol (Pin 1+2).
 > RefDes/Netze: siehe `00-referenz.md`.
 
@@ -14,6 +14,7 @@ GPIO10/11 ─► U3.BIN1/BIN2 ─► U3.BOUT1/BOUT2 ─► CN4 (Zone 4)
 GPIO12/13 ─► U4.AIN1/AIN2 ─► U4.AOUT1/AOUT2 ─► CN5 (Zone 5)
 GPIO14/15 ─► U4.BIN1/BIN2 ─► U4.BOUT1/BOUT2 ─► CN6 (Zone 6)
 GPIO16/17 ─► U5.AIN1/AIN2 ─► U5.AOUT1/AOUT2 ─► CN7 (Zone 7)
+GPIO41/42 ─► U5.BIN1/BIN2 ─► U5.BOUT1/BOUT2 ─► CN8 (Reserve)
 GPIO18 ─► nSLEEP (alle)   ·   GPIO21 ◄─ nFAULT (alle, wire-AND)
 ```
 
@@ -25,7 +26,7 @@ GPIO18 ─► nSLEEP (alle)   ·   GPIO21 ◄─ nFAULT (alle, wire-AND)
 | C3–C6 | 10 µF | 0805 | — | VINT (1 je Chip) |
 | C7–C14 | 10 nF | 0603 | — | Ladungspumpe (2 je Chip) |
 | R9 | 10 kΩ | 0805 | — | nSLEEP-Pulldown |
-| CN1–CN7 | XH2.54 2-pol | THT 2,54 mm | — | Ventil-Anschluss |
+| CN1–CN8 | XH2.54 2-pol | THT 2,54 mm | — | Ventil-Anschluss (7 Zonen + 1 Reserve) |
 
 ## 3. DRV8833 – Pinbelegung (HTSSOP-16)
 
@@ -60,7 +61,7 @@ GPIO18 ─► nSLEEP (alle)   ·   GPIO21 ◄─ nFAULT (alle, wire-AND)
 | U4 | A | 5 | 12 / 13 | CN5 |
 | U4 | B | 6 | 14 / 15 | CN6 |
 | U5 | A | 7 | 16 / 17 | CN7 |
-| U5 | B | — (Reserve) | BIN1/BIN2 → GND | — |
+| U5 | B | Reserve | 41 / 42 | CN8 |
 
 ## 5. Netzliste
 
@@ -78,11 +79,12 @@ GPIO18 ─► nSLEEP (alle)   ·   GPIO21 ◄─ nFAULT (alle, wire-AND)
 | M5_A / M5_B | U4.2 / U4.4 → CN5.1 / CN5.2 |
 | M6_A / M6_B | U4.7 / U4.5 → CN6.1 / CN6.2 |
 | M7_A / M7_B | U5.2 / U5.4 → CN7.1 / CN7.2 |
+| M8_A / M8_B | U5.7 / U5.5 → CN8.1 / CN8.2 |
 
 ## 6. Hinweise
 
 - **PowerPAD (Pin 17) zwingend an GND** (4–6 Thermal-Vias).
 - nSLEEP (GPIO18) mit **10 kΩ Pulldown** → Treiber bleiben beim ESP32-Boot deaktiviert.
 - nFAULT (GPIO21) aller Chips wire-AND (open-drain) + Pullup.
-- Reserve-Kanal (U5-B): BIN1/BIN2 fest auf GND.
+- Reserve-Kanal (U5-B): voll verkabelt (GPIO41/42 → BIN1/BIN2, CN8) als Hot-Swap-Reserve – kein fester Heizkreis.
 - XH2.54: Pin 1 + 2 (Polarität egal – die Umpolung übernimmt die H-Brücke).

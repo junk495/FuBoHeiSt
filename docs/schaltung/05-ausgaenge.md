@@ -6,7 +6,7 @@
 ## 1. Übersicht
 
 ```
-GPIO47 ─► R13 (1k) ─► Q1 (SS8050) ─► CN9 (SSR-Eingang)
+GPIO47 ─► R13 (1k) ─► Q1 (SS8050) ─► CN10 (SSR-Eingang)
                  R14 (10k) → GND
 
 GPIO39 ─► R15 (1k) ─► Q2 (SS8050) ─► BZ1 (Buzzer)  [D1 Freilauf]
@@ -21,7 +21,7 @@ GPIO39 ─► R15 (1k) ─► Q2 (SS8050) ─► BZ1 (Buzzer)  [D1 Freilauf]
 | Q2 | SS8050 (NPN, 1,5 A) | SOT-23 | C7420370 | Buzzer-Treiber |
 | R13, R15 | 1 kΩ | 0805 | — | Basis-Vorwiderstand |
 | R14, R16 | 10 kΩ | 0805 | — | Base-Emitter-Pulldown |
-| CN9 | XH2.54 2-pol | THT 2,54 mm | — | SSR-Steuerung |
+| CN10 | XH2.54 2-pol | THT 2,54 mm | — | SSR-Steuerung |
 | BZ1 | MLT-8540H (2,5–4,5 V) | SMD 8,5×8,5 | C95298 | Fehler-Signalton |
 | D1 | 1N4148W | SOD-123 | C7420318 | Buzzer-Freilauf |
 | SSR | 3,3 V, 40 A (extern) | — | — | Hauptventil (230 V) |
@@ -33,7 +33,7 @@ GPIO39 ─► R15 (1k) ─► Q2 (SS8050) ─► BZ1 (Buzzer)  [D1 Freilauf]
 | SSR_CTRL | R13.1 |
 | Q1_BASE | R13.2, R14.1, Q1.B |
 | Q1_EMITTER | Q1.E, R14.2, GND |
-| SSR_IN | Q1.C, CN9.1 |
+| SSR_IN | Q1.C, CN10.1 |
 | BUZZER | R15.1 |
 | Q2_BASE | R15.2, R16.1, Q2.B |
 | Q2_EMITTER | Q2.E, R16.2, GND |

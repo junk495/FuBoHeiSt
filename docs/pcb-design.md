@@ -19,7 +19,7 @@ Stand: vor Schaltplan-Erstellung.
   - 10 nF zwischen **CP1 (Pin 16)** und **CP2 (Pin 15)**.
   - 10 µF an **VINT (Pin 11)** → GND.
 - **nSLEEP** an GPIO18 + **10 kΩ Pull-down** an GND.
-- **Reserve-Kanal (Chip 4, Kanal B):** BIN1/BIN2 fest auf **GND**.
+- **Reserve-Kanal (Chip 4 = U5, Kanal B):** voll verkabelt (GPIO41/42 → BIN1/BIN2, CN8) als Hot-Swap-Reserve – kein fester Heizkreis.
 
 ### LM393DR2G (SOIC-8) – Kanal 2 stilllegen
 - **NICHT** als Spannungsfolger beschalten (ein Komparator würde schwingen!).

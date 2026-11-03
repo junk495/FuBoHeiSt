@@ -25,9 +25,11 @@ Die elektronische Umsetzung (Schaltplan, Pinbelegung, BOM, Firmware-Module) steh
 
 | Ebene | Aktor | Bereich |
 |---|---|---|
-| Zonenventile | 7× HmIP-VDMOT (3,3 V DC) | 0–100 % Öffnung (hydraulischer Abgleich) |
+| Zonenventile | 8× HmIP-VDMOT (3,3 V DC): 7 Heizkreise + 1 Reserve | 0–100 % Öffnung (hydraulischer Abgleich) |
 | Gesamtdurchfluss | 1× Hauptventil (Kugelhahn, 230 V, ein/aus) | ein/aus (Sommer, Frostschutz, kein Bedarf) |
 | Vorlauftemperatur | — | **nicht** unser Eingriff (setzt das Gebäude fest) |
+
+> **Reserve-Kanal:** Die Platine hat 8 Motor-Kanäle (4× DRV8833). Kanal 8 ist voll verkabelt (GPIO41/42 → CN8), aber **kein fester Heizkreis** – er dient als Hot-Swap-Reserve für einen defekten Kanal.
 
 **Regelgrößen (Eingänge):**
 - Raumtemperatur je Zone (Soll/Ist).
