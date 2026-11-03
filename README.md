@@ -175,6 +175,7 @@ FuBoHeiSt/
 ├── README.md                  (Spec)
 ├── AGENTS.md                  (Arbeitsweise für Agenten)
 ├── .clinerules                (Cline-Regeln)
+├── platformio.ini            (PIO-Projekt im Root)
 ├── docs/gesamtkonzept.md      (Gesamtkonzept: Was/Warum/Wie + KI)
 ├── docs/pcb-design.md         (PCB-Layout-Notizen)
 ├── docs/esp32_devkit.md       (DevKitC-1-Referenz: Pinout + Hinweise)
@@ -182,6 +183,6 @@ FuBoHeiSt/
 ├── docs/schaltung/            (Schaltungs-Gruppen 00–07, EasyEDA-Netzlisten)
 ├── docs/sensorik.md           (Raumfühler-Recherche: BTHome v2, Modell offen)
 ├── hardware/                  (EasyEDA, später)
-└── firmware/                  (PlatformIO, Stufe 1: Bringup)
+└── firmware/                  (Firmware-Quellcode: src/ + include/)
 ```
 
