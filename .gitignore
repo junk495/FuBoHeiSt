@@ -1,2 +1,7 @@
 # PlatformIO – Build-Artefakte
 .pio/
+
+# PlatformIO/VS Code – auto-generierte, maschinenspezifische Dateien
+.vscode/c_cpp_properties.json
+.vscode/launch.json
+
