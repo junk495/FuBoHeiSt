@@ -13,8 +13,8 @@ Format wie in `can_bus.md`: Netzliste als `RefDes.Pin`.
 | U7 | MCP602-I/SN (SOIC-8) | Ripple-Messung |
 | U8 | LM393DR2G (SOIC-8) | Ripple-Messung |
 | U9 | ME6217C33M5G (SOT-23-5) | Power |
-| Q1 | SS8050 (SOT-23) – SSR-Treiber | Ausgänge |
-| Q2 | SS8050 (SOT-23) – Buzzer-Treiber | Ausgänge |
+| Q1 | AO3400A (SOT-23) – SSR-Treiber | Ausgänge |
+| Q2 | AO3400A (SOT-23) – Buzzer-Treiber | Ausgänge |
 | D1 | 1N4148W (SOD-123) – Buzzer-Freilauf | Ausgänge |
 | D2 | TVS SMAJ5.0A – Eingangsschutz (opt.) | Power |
 | F1 | PTC 1812L300 | Power |

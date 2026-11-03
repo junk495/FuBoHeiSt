@@ -13,7 +13,7 @@ Stand: vor Schaltplan. Vollständige Liste aller PCB-Bauteile mit Mengen.
 | MCP602-I/SN (SOIC-8) | 1 | ✅ haben |
 | LM393DR2G (SOIC-8) | 1 | ✅ bestellt |
 | ME6217C33M5G (SOT-23-5) | 1 | ✅ haben |
-| SS8050 (SOT-23) | 2 | ✅ haben (SSR- + Buzzer-Treiber) |
+| AO3400A (SOT-23, N-MOSFET) | 2 | ✅ haben (SSR- + Buzzer-Treiber) |
 | SSR (3,3 V, 40 A) | 1 | ✅ haben |
 
 ## Shunts
@@ -26,8 +26,8 @@ Stand: vor Schaltplan. Vollständige Liste aller PCB-Bauteile mit Mengen.
 
 | Wert | Menge | Verwendung |
 |---|---|---|
-| 1 kΩ | 5 | R1, R2, R5 + 2× SS8050-Basis |
-| 10 kΩ | 6 | R4, R8 (LM393-Pullup), R9 (nSLEEP), R21 (nFAULT) + 2× SS8050-BE-Pulldown |
+| 1 kΩ | 5 | R1, R2, R5 + 2× AO3400A-Gate-Vorwiderstand |
+| 10 kΩ | 6 | R4, R8 (LM393-Pullup), R9 (nSLEEP), R21 (nFAULT) + 2× AO3400A-GS-Pulldown |
 | 22 kΩ | 2 | R3 (Gain), Rbias (Slicer-Offset) |
 | 4,7 kΩ | 3 | 2× I²C-Pullup + 1-Wire-Pullup |
 | 470 kΩ | 1 | Rhyst (Hysterese) |
