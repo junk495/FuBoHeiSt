@@ -8,7 +8,7 @@ Format wie in `can_bus.md`: Netzliste als `RefDes.Pin`.
 | Ref | Bauteil | Gruppe |
 |---|---|---|
 | U1 | ESP32-S3-DevKitC-1 (S3-WROOM-1-N16R8) | Controller |
-| U2–U5 | DRV8833CPWPR (HTSSOP-16) | Motor-Treiber |
+| U2–U5 | DRV8833PWPR / DRV8833CPWPR (HTSSOP-16) | Motor-Treiber |
 | U6 | INA219AIDR (SOIC-8) | Strommessung |
 | U7 | MCP602-I/SN (SOIC-8) | Ripple-Messung |
 | U8 | LM393DR2G (SOIC-8) | Ripple-Messung |

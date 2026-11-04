@@ -8,7 +8,7 @@ Stand: vor Schaltplan. Vollständige Liste aller PCB-Bauteile mit Mengen.
 | Bauteil | Menge | Status |
 |---|---|---|
 | ESP32-S3-DevKitC-1 (S3-WROOM-1-N16R8) | 1 | ✅ haben |
-| DRV8833CPWPR (HTSSOP-16) | 4 | ✅ bestellt |
+| DRV8833PWPR / DRV8833CPWPR (HTSSOP-16) | 4 | ✅ bestellt |
 | INA219AIDR (SOIC-8) | 1 | ✅ haben |
 | MCP602-I/SN (SOIC-8) | 1 | ✅ haben |
 | LM393DR2G (SOIC-8) | 1 | ✅ bestellt |
