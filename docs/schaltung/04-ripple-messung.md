@@ -92,7 +92,10 @@ ISEN (alle AISEN/BISEN) ─►[R19∥R20 = 0,5 Ω]─► GND
 ## 7. Hinweise
 
 - **Alle Werte sind Startwerte** (Stall-Strom/Ripple noch nicht gemessen) → auf der ersten Platine nachjustieren (Gain über R3, Slicer-Zeit über R5/C2).
-- **Gesamt-Spannungsabfall @ 120 mA Stall:** 60 mV (INA219-Shunt) + ~43 mV (DRV8833 R_DS(on)) + 60 mV (ISEN-Shunt) ≈ **163 mV** → **3,14 V** am Motor (für den 3,3-V-VDMOT unkritisch).
+- **Gesamt-Spannungsabfall @ 120 mA Stall:**
+  - **DRV8833** (N-Kanal, R_DS(on) ≈ 0,36 Ω): 60 mV (INA219-Shunt) + ~43 mV (DRV8833) + 60 mV (ISEN-Shunt) ≈ **163 mV** → **~3,14 V** am Motor.
+  - **DRV8833C** (P-Kanal High-Side, R_DS(on) HS+LS ≈ 1,74 Ω): 60 mV (INA219-Shunt) + ~208 mV (DRV8833C) + 60 mV (ISEN-Shunt) ≈ **328 mV** → **~2,97 V** am Motor.
+  - Für den 3,3-V-VDMOT sind beide Werte unkritisch (Laufstrom ~50 mA → deutlich weniger Abfall).
 - **MCP602 & LM393 an +5V** (mehr Headroom); **Pullup an +3V3** (PCNT-sicher).
 - **MCP602 Kanal B als Spannungsfolger** (OpAmp); **LM393 Kanal 2 NICHT als Folger** (Komparator würde schwingen) → Eingänge fest, Ausgang NC.
 - Am ISEN fließt der Strom immer positiv Richtung GND → massebezogenes Signal, **kein Bias** nötig.

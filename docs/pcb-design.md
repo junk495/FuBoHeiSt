@@ -12,10 +12,11 @@ Stand: vor Schaltplan-Erstellung.
 
 ## 2. Bauteil-spezifische Merker
 
-### DRV8833CPWPR (HTSSOP-16, PowerPAD)
+### DRV8833PWPR / DRV8833CPWPR (HTSSOP-16, PowerPAD, Universal-Footprint)
 - **PowerPAD (Pin 17, Unterseite) zwingend an GND** löten, mit **4–6 Thermal-Vias** in die untere Ground-Plane.
-- **Ladungspumpe (Pflicht, direkt am Chip):**
-  - 10 nF zwischen **VCP (Pin 11)** und **VM (Pin 12)** (nur **ein** Kondensator – der DRV8833 hat **keine** CP1/CP2-Pins).
+- **Ladungspumpe (nur beim `DRV8833`, beim `DRV8833C` entfällt sie):**
+  - Pin 11 = `VCP` (DRV8833) / `NC` (DRV8833C).
+  - **10 nF (C7–C10) zwischen Pin 11 (`VCP/NC`) und Pin 12 (`VM`) fest routen** → Universal-Footprint: mit beiden ICs bestückbar (beim `C`-Typ optional/DNP, beim Nicht-`C`-Typ Pflicht-Ladungspumpe).
   - 10 µF an **VINT (Pin 14)** → GND (**je Chip getrennt**, nicht brücken).
   - 100 nF an **VM (Pin 12)** → GND (Entkopplung).
 - **nSLEEP** an GPIO18 + **10 kΩ Pull-down** an GND.

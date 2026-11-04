@@ -22,9 +22,9 @@ GPIO18 ─► nSLEEP (alle)   ·   GPIO21 ◄─ nFAULT (alle, wire-AND)
 
 | Ref | Bauteil / Wert | Gehäuse | LCSC | Funktion |
 |---|---|---|---|---|
-| U2–U5 | DRV8833CPWPR | HTSSOP-16 | — | 2 H-Brücken je Chip |
+| U2–U5 | DRV8833PWPR / DRV8833CPWPR | HTSSOP-16 | — | 2 H-Brücken je Chip (Universal-Footprint) |
 | C3–C6 | 10 µF | 0805 | — | VINT (1 je Chip) |
-| C7–C10 | 10 nF | 0805 | — | Ladungspumpe VCP→VM (1 je Chip) |
+| C7–C10 | 10 nF | 0805 | — | Ladungspumpe VCP→VM (Pflicht bei DRV8833, optional/DNP bei DRV8833C) |
 | C11–C14 | 100 nF | 0805 | — | VM-Entkopplung (1 je Chip) |
 | C20 | 10 µF | 0805 | — | VM-Bulk (nach INA219-Shunt) |
 | R9 | 10 kΩ | 0805 | — | nSLEEP-Pulldown |
@@ -45,7 +45,7 @@ GPIO18 ─► nSLEEP (alle)   ·   GPIO21 ◄─ nFAULT (alle, wire-AND)
 | 8 | nFAULT | Fehler (LOW) | GPIO21 (wire-AND + Pullup) |
 | 9 | BIN1 | Eingang B1 | GPIO |
 | 10 | BIN2 | Eingang B2 | GPIO |
-| 11 | VCP | Ladungspumpe | 10 nF → VM (Pin 12) |
+| 11 | VCP / NC | Ladungspumpe (DRV8833) / NC (DRV8833C) | 10 nF → VM (Pin 12) – Universal-Footprint für beide Chip-Varianten |
 | 12 | VM | Motorversorgung | VM (nach INA219-Shunt) + 100 nF → GND |
 | 13 | GND | Masse | GND |
 | 14 | VINT | Interner 1,8-V-Regler | 10 µF → GND (je Chip, nicht brücken) |
@@ -104,7 +104,7 @@ GPIO18 ─► nSLEEP (alle)   ·   GPIO21 ◄─ nFAULT (alle, wire-AND)
 ## 6. Hinweise
 
 - **PowerPAD (Pin 17) zwingend an GND** (4–6 Thermal-Vias).
-- **Ladungspumpe:** nur **1× 10 nF** zwischen **VCP (Pin 11)** und **VM (Pin 12)** – der DRV8833 hat **keine** CP1/CP2-Pins. Zusätzlich **100 nF** von VM (Pin 12) → GND je Chip.
+- **Ladungspumpe (Universal-Footprint):** Pin 11 ist beim **DRV8833** `VCP` (Pflicht: 1× 10 nF → VM) und beim **DRV8833C** `NC`. Der 10-nF-Footprint (C7–C10) bleibt fest geroutet, damit beide Varianten bestückbar sind – beim `C`-Typ optional/DNP. Zusätzlich **100 nF** von VM (Pin 12) → GND je Chip.
 - nSLEEP (GPIO18) mit **10 kΩ Pulldown** → Treiber bleiben beim ESP32-Boot deaktiviert.
 - nFAULT (GPIO21) aller Chips wire-AND (open-drain) + Pullup.
 - Reserve-Kanal (U5-B): voll verkabelt (GPIO41/42 → BIN1/BIN2, CN8) als Hot-Swap-Reserve – kein fester Heizkreis.

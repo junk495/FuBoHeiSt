@@ -36,7 +36,7 @@ Stand: vor Schaltplan. Vollständige Liste aller PCB-Bauteile mit Mengen.
 
 | Wert | Menge | Verwendung |
 |---|---|---|
-| 10 nF | 4 | Ladungspumpe VCP→VM (1 je DRV8833) |
+| 10 nF | 4 | Ladungspumpe VCP→VM (Universal-Footprint für DRV8833 / DRV8833C) |
 | 100 nF | 10 | C1 + 3× IC-Abblock + 4× VM-DRV8833 + ME6217-Eingang + Reserve |
 | 10 µF | 7 | C2 + 4× VINT + ME6217-Ausgang + C20 (VM-Bulk) |
 
