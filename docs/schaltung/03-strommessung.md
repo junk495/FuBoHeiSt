@@ -28,8 +28,8 @@
 | 2 | A0 | Adresse | GND (→ 0x40) |
 | 3 | SDA | I²C-Daten | I2C_SDA (GPIO1) |
 | 4 | SCL | I²C-Takt | I2C_SCL (GPIO2) |
-| 5 | GND | Masse | GND |
-| 6 | VS | Versorgung | +3V3 |
+| 5 | VS | Versorgung | +3V3 |
+| 6 | GND | Masse | GND |
 | 7 | IN− | Shunt − | VM (nach Shunt) |
 | 8 | IN+ | Shunt + | +3V3_MOTOR (vor Shunt) |
 
@@ -39,8 +39,8 @@
 |---|---|
 | +3V3_MOTOR | U6.8 (IN+), R17.1, R18.1 |
 | VM | U6.7 (IN−), R17.2, R18.2 |
-| +3V3 | U6.6 (VS), C15.1, R10.1, R11.1 |
-| GND | U6.5 (GND), U6.2 (A0), U6.1 (A1), C15.2 |
+| +3V3 | U6.5 (VS), C15.1, R10.1, R11.1 |
+| GND | U6.6 (GND), U6.2 (A0), U6.1 (A1), C15.2 |
 | I2C_SDA | U6.3 (SDA), R10.2 |
 | I2C_SCL | U6.4 (SCL), R11.2 |
 
