@@ -34,7 +34,7 @@ Stand: vor Schaltplan-Erstellung.
 - **CE (Pin 3) → VIN (Pin 1, 5 V)** verbinden, sonst bleibt `3,3 V_MOTOR` dauerhaft ausgeschaltet.
 
 ### INA219AIDR (SOIC-8)
-- Pinout: **1=IN+, 2=IN−, 3=GND, 4=VS, 5=SCL, 6=SDA, 7=A0, 8=A1** (A0/A1 → GND = Adresse 0x40).
+- Pinout: **1=A1, 2=A0, 3=SDA, 4=SCL, 5=GND, 6=VS, 7=IN−, 8=IN+** (A0/A1 → GND = Adresse 0x40).
 - Externer **0,5 Ω Shunt (2× 1 Ω 0805 parallel)** zwischen IN+ und IN−.
 
 ## 3. Leiterbahnen & Routing

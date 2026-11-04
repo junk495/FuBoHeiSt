@@ -6,7 +6,7 @@
 ## 1. Übersicht
 
 ```
-+3V3_MOTOR ─► U6.1 (IN+) ─[R17∥R18 = 0,5 Ω]─ U6.2 (IN−) ─► VM (DRV8833)
++3V3_MOTOR ─► U6.8 (IN+) ─[R17∥R18 = 0,5 Ω]─ U6.7 (IN−) ─► VM (DRV8833)
                     U6 (INA219) ─► I2C_SDA / I2C_SCL ─► GPIO1 / GPIO2
 ```
 
@@ -24,25 +24,25 @@
 
 | Pin | Name | Funktion | Anschluss |
 |---|---|---|---|
-| 1 | IN+ | Shunt + | +3V3_MOTOR (vor Shunt) |
-| 2 | IN− | Shunt − | VM (nach Shunt) |
-| 3 | GND | Masse | GND |
-| 4 | VS | Versorgung | +3V3 |
-| 5 | SCL | I²C-Takt | I2C_SCL (GPIO2) |
-| 6 | SDA | I²C-Daten | I2C_SDA (GPIO1) |
-| 7 | A0 | Adresse | GND (→ 0x40) |
-| 8 | A1 | Adresse | GND (→ 0x40) |
+| 1 | A1 | Adresse | GND (→ 0x40) |
+| 2 | A0 | Adresse | GND (→ 0x40) |
+| 3 | SDA | I²C-Daten | I2C_SDA (GPIO1) |
+| 4 | SCL | I²C-Takt | I2C_SCL (GPIO2) |
+| 5 | GND | Masse | GND |
+| 6 | VS | Versorgung | +3V3 |
+| 7 | IN− | Shunt − | VM (nach Shunt) |
+| 8 | IN+ | Shunt + | +3V3_MOTOR (vor Shunt) |
 
 ## 4. Netzliste
 
 | Netz | Pins |
 |---|---|
-| +3V3_MOTOR | U6.1 (IN+), R17.1, R18.1 |
-| VM | U6.2 (IN−), R17.2, R18.2 |
-| +3V3 | U6.4 (VS), C15.1, R10.1, R11.1 |
-| GND | U6.3, U6.7 (A0), U6.8 (A1), C15.2 |
-| I2C_SDA | U6.6 (SDA), R10.2 |
-| I2C_SCL | U6.5 (SCL), R11.2 |
+| +3V3_MOTOR | U6.8 (IN+), R17.1, R18.1 |
+| VM | U6.7 (IN−), R17.2, R18.2 |
+| +3V3 | U6.6 (VS), C15.1, R10.1, R11.1 |
+| GND | U6.5 (GND), U6.2 (A0), U6.1 (A1), C15.2 |
+| I2C_SDA | U6.3 (SDA), R10.2 |
+| I2C_SCL | U6.4 (SCL), R11.2 |
 
 ## 5. Hinweise
 
