@@ -25,11 +25,8 @@ env/
 
 # VS Code / Editor
 .vscode/*
-!.vscode/launch.json
 !.vscode/extensions.json
 .idea/
-
-
 
 # Betriebssystem
 .DS_Store

@@ -1,0 +1,73 @@
+// For format details, see https://aka.ms/devcontainer.json. For config options, see the
+// README at: https://github.com/devcontainers/templates/tree/main/src/ubuntu
+{
+	"name": "FuBoHeiSt",
+
+	// Or use a Dockerfile or Docker Compose file. More info: https://containers.dev/guide/dockerfile
+	"image": "mcr.microsoft.com/devcontainers/base:resolute",
+
+	// Features to add to the dev container. More info: https://containers.dev/features.
+	"features": {
+		// Node.js (via nvm) + npm + pnpm
+		"ghcr.io/devcontainers/features/node:1": {
+			"version": "lts"
+		},
+		// Python (system version of the image) + pip + venv
+		"ghcr.io/devcontainers/features/python:1": {
+			"version": "os-provided"
+		},
+		// Zsh, Git, jq, curl, wget, ripgrep, ... and a passwordless-sudo user
+		"ghcr.io/devcontainers/features/common-utils:2": {
+			"installZsh": true,
+			"configureZshAsDefaultShell": true,
+			"upgradePackages": true,
+			"username": "automatic",
+			"sudoers": true
+		}
+	},
+
+	// Use 'forwardPorts' to make a list of ports inside the container available locally.
+	"forwardPorts": [3000, 8000, 8080],
+
+	// Cline-Verlaeufe pro Projekt dauerhaft sichern (ueberleben Rebuilds).
+	// Jedes Projekt bekommt automatisch ein eigenes Volume anhand des
+	// Ordnernamens. So bleiben die Chats nur in diesem Projekt erhalten.
+	"mounts": [
+		"source=cline-history-${localWorkspaceFolderBasename},target=/home/vscode/.cline,type=volume"
+	],
+
+	// Use 'postCreateCommand' to run commands after the container is created.
+	"postCreateCommand": "bash -c 'sudo chown -R $(id -u):$(id -g) /home/vscode/.cline 2>/dev/null || true; echo \"Dev Container bereit - node $(node -v), python $(python3 -V)\"'",
+
+	// ---------------------------------------------------------------------------
+	// Verbindung zu einem lokalen Ordner
+	// ---------------------------------------------------------------------------
+	// Standardmaessig wird der Ordner, den du in VS Code geoeffnet hast, bereits
+	// eingebunden. In dieser Umgebung ist /workspaces/ubuntu allerdings ein
+	// Docker-Volume (siehe README.md).
+	//
+	// Wenn du stattdessen ein echtes Bind-Mount deines lokalen Ordners willst,
+	// entferne die Kommentare der beiden folgenden Zeilen:
+	//
+	// "workspaceMount": "source=${localWorkspaceFolder},target=/workspaces/projekt,type=bind,consistency=cached",
+	// "workspaceFolder": "/workspaces/projekt"
+
+	// Configure tool-specific properties.
+	"customizations": {
+		"vscode": {
+			"extensions": [
+				"saoudrizwan.claude-dev", // Cline (KI-Agent)
+				"ms-python.python",
+				"dbaeumer.vscode-eslint",
+				"esbenp.prettier-vscode"
+			],
+			"settings": {
+				"python.defaultInterpreterPath": "/usr/bin/python3",
+				"terminal.integrated.defaultProfile.linux": "zsh"
+			}
+		}
+	}
+
+	// Uncomment to connect as root instead. More info: https://aka.ms/dev-containers-non-root.
+	// "remoteUser": "root"
+}
