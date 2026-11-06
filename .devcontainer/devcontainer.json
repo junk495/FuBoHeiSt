@@ -6,6 +6,9 @@
 	// Or use a Dockerfile or Docker Compose file. More info: https://containers.dev/guide/dockerfile
 	"image": "mcr.microsoft.com/devcontainers/base:resolute",
 
+	// Netz-Haertung: erlaubt iptables-Regeln im Container (Internet ja, Heimnetz nein)
+	"runArgs": ["--cap-add=NET_ADMIN"],
+
 	// Features to add to the dev container. More info: https://containers.dev/features.
 	"features": {
 		// Node.js (via nvm) + npm + pnpm
@@ -38,6 +41,9 @@
 
 	// Use 'postCreateCommand' to run commands after the container is created.
 	"postCreateCommand": "bash -c 'sudo chown -R $(id -u):$(id -g) /home/vscode/.cline 2>/dev/null || true; echo \"Dev Container bereit - node $(node -v), python $(python3 -V)\"'",
+
+	// Netz-Haertung: Internet erlauben, Heimnetz/LAN blockieren (laeuft bei jedem Start)
+	"postStartCommand": "bash -c 'sudo iptables -N CLINE_NETGUARD 2>/dev/null; sudo iptables -F CLINE_NETGUARD; sudo iptables -C OUTPUT -j CLINE_NETGUARD 2>/dev/null || sudo iptables -I OUTPUT 1 -j CLINE_NETGUARD; sudo iptables -A CLINE_NETGUARD -o lo -j ACCEPT; sudo iptables -A CLINE_NETGUARD -p udp --dport 53 -j ACCEPT; sudo iptables -A CLINE_NETGUARD -p tcp --dport 53 -j ACCEPT; sudo iptables -A CLINE_NETGUARD -d 172.17.0.0/16 -j ACCEPT; sudo iptables -A CLINE_NETGUARD -d 192.168.1.144/32 -p tcp --dport 3000 -j ACCEPT; sudo iptables -A CLINE_NETGUARD -d 192.168.1.144/32 -p tcp --dport 22 -j ACCEPT; sudo iptables -A CLINE_NETGUARD -d 192.168.0.0/16 -j REJECT; sudo iptables -A CLINE_NETGUARD -d 10.0.0.0/8 -j REJECT; sudo iptables -A CLINE_NETGUARD -d 172.16.0.0/12 -j REJECT'",
 
 	// ---------------------------------------------------------------------------
 	// Verbindung zu einem lokalen Ordner
