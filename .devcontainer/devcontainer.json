@@ -9,7 +9,7 @@
 	// Features to add to the dev container. More info: https://containers.dev/features.
 	"features": {
 		// Node.js (via nvm) + npm + pnpm
-		"ghcr.io/devcontainers/features/node:1": {
+		"ghcr.io/devcontainers/features/node:2": {
 			"version": "lts"
 		},
 		// Python (system version of the image) + pip + venv
