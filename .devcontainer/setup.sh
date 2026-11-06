@@ -37,6 +37,19 @@ log()  { echo "[setup] $*"; }
 fail() { echo "[setup] FEHLER: $*" >&2; exit 1; }
 
 # ---------------------------------------------------------------------------
+# 0) Volume-Besitzer korrigieren (WICHTIG!)
+#    Frisch angelegte Docker-Volumes werden als root:root gemountet. Das Skript
+#    laeuft aber als User "vscode" und muss in die Verzeichnisse schreiben
+#    duerfen (sonst schlaegt die pioarduino-Extension mit "Failed to install
+#    pioarduino IDE" fehl). Daher gleich zu Beginn chownen - genau wie es die
+#    bisherige postCreateCommand fuer ~/.cline getan hat.
+# ---------------------------------------------------------------------------
+fix_volume_ownership() {
+	sudo chown -R "$(id -u):$(id -g)" "${HOME}/.cline" 2>/dev/null || true
+	sudo chown -R "$(id -u):$(id -g)" "${PIO_HOME}" 2>/dev/null || true
+}
+
+# ---------------------------------------------------------------------------
 # 1) uv bereitstellen (uv liefert Python 3.13 fuer das penv)
 #    Installation via pipx in das systemweite, bereits im PATH liegende
 #    Verzeichnis /usr/local/py-utils/bin (PIPX_BIN_DIR aus der Container-Image).
@@ -180,6 +193,7 @@ log "=============================================="
 log " FuBoHeiSt Devcontainer-Setup"
 log "=============================================="
 
+fix_volume_ownership
 install_uv
 install_builtin_core
 install_terminal_core
