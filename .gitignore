@@ -5,3 +5,42 @@
 .vscode/c_cpp_properties.json
 .vscode/launch.json
 
+# Node
+node_modules/
+npm-debug.log*
+yarn-error.log*
+.pnpm-debug.log*
+
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+.venv/
+venv/
+env/
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+*.egg-info/
+
+# VS Code / Editor
+.vscode/*
+!.vscode/launch.json
+!.vscode/extensions.json
+.idea/
+
+
+
+# Betriebssystem
+.DS_Store
+Thumbs.db
+
+# Logs & Build
+*.log
+build/
+dist/
+
+# Secrets / API-Keys (niemals committen!)
+.env
+.env.*
+!.env.example
