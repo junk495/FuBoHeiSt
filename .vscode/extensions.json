@@ -1,9 +1,8 @@
 {
     "recommendations": [
-        "Jason2866.esp-decoder",
-        "pioarduino.pioarduino-ide"
+        "pioarduino.pioarduino-ide",
+        "jason2866.esp-decoder",
+        "ms-vscode.cpptools"
     ],
-    "unwantedRecommendations": [
-        "ms-vscode.cpptools-extension-pack"
-    ]
+    "unwantedRecommendations": []
 }

@@ -35,12 +35,22 @@
 	// Cline-Verlaeufe pro Projekt dauerhaft sichern (ueberleben Rebuilds).
 	// Jedes Projekt bekommt automatisch ein eigenes Volume anhand des
 	// Ordnernamens. So bleiben die Chats nur in diesem Projekt erhalten.
+	//
+	// platformio-core-Volume: persistente PlatformIO-Installation
+	// (~/.platformio mit Core, espressif32-Plattform, Toolchain ~3,8 GB und
+	// Arduino-Framework). Ohne dieses Volume muesste die Toolchain bei jedem
+	// Rebuild neu geladen werden (~7 min). Das Volume enthaelt den
+	// PlatformIO-Core der pioarduino-Extension UND den Core fuer das
+	// Terminal -> beide teilen sich denselben Paket-Cache.
 	"mounts": [
-		"source=cline-history-${localWorkspaceFolderBasename},target=/home/vscode/.cline,type=volume"
+		"source=cline-history-${localWorkspaceFolderBasename},target=/home/vscode/.cline,type=volume",
+		"source=platformio-core-${localWorkspaceFolderBasename},target=/home/vscode/.platformio,type=volume"
 	],
 
 	// Use 'postCreateCommand' to run commands after the container is created.
-	"postCreateCommand": "bash -c 'sudo chown -R $(id -u):$(id -g) /home/vscode/.cline 2>/dev/null || true; echo \"Dev Container bereit - node $(node -v), python $(python3 -V)\"'",
+	// Laeuft nach jedem Rebuild. Das Skript ist idempotent: es installiert nur
+	// fehlende Komponenten und laeuft bei vorhandenem Volume in Sekunden durch.
+	"postCreateCommand": "bash .devcontainer/setup.sh",
 
 	// Netz-Haertung: Internet erlauben, Heimnetz/LAN blockieren (laeuft bei jedem Start)
 	"postStartCommand": "bash -c 'sudo iptables -N CLINE_NETGUARD 2>/dev/null; sudo iptables -F CLINE_NETGUARD; sudo iptables -C OUTPUT -j CLINE_NETGUARD 2>/dev/null || sudo iptables -I OUTPUT 1 -j CLINE_NETGUARD; sudo iptables -A CLINE_NETGUARD -o lo -j ACCEPT; sudo iptables -A CLINE_NETGUARD -p udp --dport 53 -j ACCEPT; sudo iptables -A CLINE_NETGUARD -p tcp --dport 53 -j ACCEPT; sudo iptables -A CLINE_NETGUARD -d 172.17.0.0/16 -j ACCEPT; sudo iptables -A CLINE_NETGUARD -d 192.168.1.144/32 -p tcp --dport 3000 -j ACCEPT; sudo iptables -A CLINE_NETGUARD -d 192.168.1.144/32 -p tcp --dport 22 -j ACCEPT; sudo iptables -A CLINE_NETGUARD -d 192.168.0.0/16 -j REJECT; sudo iptables -A CLINE_NETGUARD -d 10.0.0.0/8 -j REJECT; sudo iptables -A CLINE_NETGUARD -d 172.16.0.0/12 -j REJECT'",
@@ -65,11 +75,25 @@
 				"saoudrizwan.claude-dev", // Cline (KI-Agent)
 				"ms-python.python",
 				"dbaeumer.vscode-eslint",
-				"esbenp.prettier-vscode"
+				"esbenp.prettier-vscode",
+				"pioarduino.pioarduino-ide", // PlatformIO-Fork fuer Espressif/ESP32
+				"jason2866.esp-decoder", // ESP32-Crash-Decoder (Guru Meditation)
+				"ms-vscode.cpptools" // C/C++-IntelliSense-Backend (pflicht seit pioarduino 1.4)
 			],
 			"settings": {
 				"python.defaultInterpreterPath": "/usr/bin/python3",
-				"terminal.integrated.defaultProfile.linux": "zsh"
+				"terminal.integrated.defaultProfile.linux": "zsh",
+				// pioarduino nutzt den Built-in-Core in ~/.platformio/penv.
+				// WICHTIG: Der Core braucht Python 3.13 (uv-venv), NICHT das
+				// System-Python 3.14 - daher legt setup.sh das penv selbst an.
+				// Mit useBuiltinPIOCore=false sucht die Extension nur nach
+				// exakt Python 3.13 im System und faellt sonst aus.
+				"platformio-ide.useBuiltinPIOCore": true,
+				"platformio-ide.useBuiltinPython": true,
+				"platformio-ide.disablePIOHomeStartup": true,
+				"platformio-ide.intelliSenseEngine": "cpptools",
+				// ESP-Crash-Decoder: Baudrate passend zur Firmware (platformio.ini)
+				"esp-decoder.defaultBaudRate": 115200
 			}
 		}
 	}

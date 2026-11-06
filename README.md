@@ -92,6 +92,29 @@ Motorstrom:
 
 ## 4. Firmware-Architektur
 
+### 4.0 Entwicklungsumgebung (Devcontainer)
+
+Die Entwicklung läuft in einem **VS-Code-Devcontainer** (`mcr.microsoft.com/devcontainers/base:resolute`).
+Rebuilds sind dadurch reproduzierbar und die Toolchain bleibt erhalten.
+
+| Komponente | Zweck |
+|---|---|
+| `pioarduino.pioarduino-ide` | PlatformIO-Fork mit ESP32/Espressif-Support |
+| `jason2866.esp-decoder` | Serial-Monitor + Guru-Meditation-/Crash-Decoder |
+| `ms-vscode.cpptools` | C/C++-IntelliSense-Backend (pioarduino ≥ 1.4 installiert es **nicht** mehr selbst) |
+
+**Automatisierung:** `.devcontainer/setup.sh` läuft als `postCreateCommand` bei jedem Rebuild und ist idempotent:
+
+1. installiert den PlatformIO-Core (pioarduino) per `pipx` nach `/usr/local/py-utils/bin` → `pio` ist im Terminal verfügbar,
+2. installiert `espressif32`-Plattform, Toolchain (xtensa/riscv32) und Arduino-Framework,
+3. erzeugt die cpptools-IntelliSense-Konfiguration (`.vscode/c_cpp_properties.json`).
+
+**Persistenz:** `~/.platformio` liegt auf dem Volume `platformio-core-<projekt>` (≈ 5 GB).
+Ohne dieses Volume müsste die Toolchain bei jedem Rebuild neu geladen werden (≈ 7 min).
+
+> **Hinweis:** Die ESP32-Serial-Schnittstelle ist im Container nicht automatisch durchgereicht.
+> Für Flash/Monitor muss der Port per `runArgs` (`--device=...`) durchgereicht werden.
+
 ### 4.1 Module
 | Modul | Aufgabe |
 |---|---|
@@ -175,6 +198,7 @@ FuBoHeiSt/
 ├── README.md                  (Spec)
 ├── AGENTS.md                  (Arbeitsweise für Agenten)
 ├── .clinerules                (Cline-Regeln)
+├── .devcontainer/             (Devcontainer: devcontainer.json + setup.sh)
 ├── platformio.ini            (PIO-Projekt im Root)
 ├── docs/gesamtkonzept.md      (Gesamtkonzept: Was/Warum/Wie + KI)
 ├── docs/pcb-design.md         (PCB-Layout-Notizen)

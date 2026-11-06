@@ -33,10 +33,24 @@ FuBoHeiSt/
 ├── README.md      Spec (Ziel, Architektur, BOM, Datenmodell, TODO)
 ├── AGENTS.md      dieses Dokument
 ├── .clinerules    Cline-spezifische Regeln
+├── .devcontainer/ Devcontainer (devcontainer.json + setup.sh)
 ├── docs/          Schaltplan-/Netzlisten-Konzept, Pinbelegung, weitere Doku
 ├── hardware/      EasyEDA-Schaltplan/-PCB
 └── firmware/      PlatformIO-Projekt
 ```
+
+## Entwicklungsumgebung
+
+Die Entwicklung läuft in einem **VS-Code-Devcontainer** (siehe `.devcontainer/`).
+
+- **Rebuild:** `postCreateCommand` führt `.devcontainer/setup.sh` aus. Das Skript ist idempotent und
+  installiert PlatformIO-Core (pioarduino), espressif32-Plattform/Toolchain und die
+  cpptools-IntelliSense-Konfiguration.
+- **`pio` im Terminal:** Der Core liegt unter `/usr/local/py-utils/bin` (pipx) und ist im PATH.
+- **Persistenz:** `~/.platformio` liegt auf dem Volume `platformio-core-<projekt>` (≈ 5 GB).
+  Ohne dieses Volume wird die Toolchain bei jedem Rebuild neu geladen (≈ 7 min).
+- **Nach einem Rebuild** sind `pioarduino.pioarduino-ide`, `jason2866.esp-decoder` und
+  `ms-vscode.cpptools` automatisch installiert (via `customizations.vscode.extensions`).
 
 ## Sicherheit (unbedingt)
 
