@@ -1,7 +1,7 @@
 # Gesamtkonzept FuBoHeiSt
 
 Das große Bild: **was** wir regeln, **warum**, **wie** – und wie **KI** dabei hilft.
-Die elektronische Umsetzung (Schaltplan, Pinbelegung, BOM, Firmware-Module) steht in `README.md` und `docs/schaltung/` (00–07); dieses Dokument beschreibt das Konzept darüber.
+Die elektronische Umsetzung (Schaltplan, Pinbelegung, BOM, Firmware-Module) steht in `README.md` und `docs/schaltung/` (00–08); dieses Dokument beschreibt das Konzept darüber.
 
 ## 1. Ausgangslage & Motivation (Warum)
 

@@ -24,6 +24,7 @@ Format wie in `can_bus.md`: Netzliste als `RefDes.Pin`.
 | CN9 | XH2.54 2-pol (5-V-Eingang) | Power |
 | CN10 | XH2.54 2-pol (SSR-Steuerung) | Ausgänge |
 | CN11 | XH2.54 3-pol (1-Wire/DS18B20) | 1-Wire |
+| CN12 | XH2.54 4-pol (UART-Debug) | Testpunkte |
 
 ## Netznamen (Power)
 
@@ -45,5 +46,6 @@ Format wie in `can_bus.md`: Netzliste als `RefDes.Pin`.
 | SSR_CTRL | GPIO47 → Q1 (SSR) |
 | BUZZER | GPIO39 → Q2 (Buzzer) |
 | 1WIRE | GPIO40 → CN11 (DS18B20) |
+| UART_TX / UART_RX | GPIO43/44 → CN12 (Debug) |
 | ISEN | gemeinsamer AISEN/BISEN-Knoten (Low-Side-Shunt) |
 | M1_A/M1_B … M7_A/M7_B, M8_A/M8_B | Motor-Ausgänge zu XH2.54 |

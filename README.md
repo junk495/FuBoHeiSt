@@ -187,7 +187,7 @@ fbh/config/...                 → Parameter (publish)
 - [x] Pin-Belegung finalisiert
 
 ## 7. Nächste Schritte
-1. Schaltplan-/Netzlisten-Konzept finalisieren (`docs/schaltung/` 00–07)
+1. Schaltplan-/Netzlisten-Konzept finalisieren (`docs/schaltung/` 00–08)
 2. EasyEDA-Schaltplan + Trägerplatine (DRV8833, INA219, Ripple-Kette, SSR)
 3. Firmware-Grundgerüst (PlatformIO + Arduino-ESP32, ESP32-S3)
 4. Kalibrier-/Logging-Phase → thermisches Modell (KI-Tuning)
@@ -202,9 +202,10 @@ FuBoHeiSt/
 ├── platformio.ini            (PIO-Projekt im Root)
 ├── docs/gesamtkonzept.md      (Gesamtkonzept: Was/Warum/Wie + KI)
 ├── docs/pcb-design.md         (PCB-Layout-Notizen)
+├── docs/pcb-placement.md      (Bauteil-Platzierung & Gruppierung)
 ├── docs/esp32_devkit.md       (DevKitC-1-Referenz: Pinout + Hinweise)
 ├── docs/bom.md                (Stückliste: vorhanden vs. kaufen)
-├── docs/schaltung/            (Schaltungs-Gruppen 00–07, EasyEDA-Netzlisten)
+├── docs/schaltung/            (Schaltungs-Gruppen 00–08, EasyEDA-Netzlisten)
 ├── docs/sensorik.md           (Raumfühler-Recherche: BTHome v2, Modell offen)
 ├── hardware/                  (EasyEDA, später)
 └── firmware/                  (Firmware-Quellcode: src/ + include/)

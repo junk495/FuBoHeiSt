@@ -3,6 +3,8 @@
 Praktische Merker für das Zeichnen in EasyEDA Pro – geht über das Netzlisten-Konzept (`docs/schaltung/00-referenz.md` … `07-controller.md`) hinaus.
 Stand: vor Schaltplan-Erstellung.
 
+> **Platzierung/Gruppierung** (welche Bauteile wohin): siehe [`pcb-placement.md`](pcb-placement.md).
+
 ## 1. Allgemeine Layout-Prinzipien
 
 - **230-V-Zone (SSR-Ausgang → Kugelhahn)** räumlich strikt von der Niederspannungs-Logik trennen (Kriech-/Luftstrecken).
