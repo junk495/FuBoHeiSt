@@ -15,8 +15,8 @@
 | **G4 – Motor-Verbinder** | CN1–CN8 | XH2.54 2-pol (7 Zonen + 1 Reserve) |
 | **G5 – Ripple-Messkette** | R19, R20, R1, C1, U7, R2, R3, C16, U8, R4, R5, C2, R6, R7, R8, C17 | ISEN-Shunt → Tiefpass → MCP602 → LM393 |
 | **G6 – Ausgänge** | Q1, R13, R14, CN10, Q2, R15, R16, BZ1, D1 | SSR-Treiber (Hauptventil) + Buzzer |
-| **G7 – 1-Wire** | CN11, R12 | DS18B20-Anlegefühler |
-| **G8 – Debug/Test** | CN12, TP1–TP14 | UART-Debug-Header + Messpads |
+| **G7 – 1-Wire** | CN11, CN12, R12 | DS18B20 (Vorlauf + optional Bodenfühler) |
+| **G8 – Debug/Test** | CN-UART, TP1–TP14 | UART-Debug-Header + Messpads |
 | **U1 – Controller** | U1 | ESP32-S3-DevKitC-1 (Steckmodul) |
 
 > **Vollständigkeit:** Alle RefDes aus BOM + Schaltungs-Gruppen sind hier einer Gruppe
@@ -40,7 +40,7 @@
 │──────────────────────────────────────────────────────────────────│
 │  [G5 Ripple: R19/R20, R1/C1, U7, U8 + R2–R8, C2, C16, C17]      │
 │──────────────────────────────────────────────────────────────────│
-│ CN11 R12 │ Q1 R13/R14 CN10 │ Q2 R15/R16 BZ1 D1 │ CN12 (Debug)  │
+│ CN11 R12 │ Q1 R13/R14 CN10 │ Q2 R15/R16 BZ1 D1 │ CN-UART (Debug) │
 │ [G7]     │ [G6 SSR]        │ [G6 Buzzer]        │ [G8]         │
 └─────────────────────────────────────────────────────────────────┘
         ▲ 230-V-Zone: CN10 → SSR → Kugelhahn, Leitung strikt wegführen
@@ -80,10 +80,11 @@
 - **CN10 (SSR-Steuerung)** ist der **einzige** Punkt mit 230-V-Bezug → am Rand, Leitung **weg** von der Logik führen.
 
 ### G7 – 1-Wire (Rand, niederspannungsseitig)
-- **CN11 (3-pol)** + **R12 (4,7 kΩ)** zusammen; kurzer Weg zu GPIO40.
+- **CN11 (3-pol, Vorlauf)** + **CN12 (3-pol, optional Bodenfühler)** + **R12 (4,7 kΩ)** zusammen; kurzer Weg zu GPIO40.
+- Pin-Belegung CN11/CN12: 1 = GND, 2 = +3V3, 3 = Daten (siehe `06-1-wire.md`).
 
 ### G8 – Debug/Test (Rand, gut zugänglich)
-- **CN12 (4-pol UART)** am Rand; Messpads **TP1–TP14** nahe am jeweiligen Bauteil platzieren
+- **CN-UART (4-pol UART)** am Rand; Messpads **TP1–TP14** nahe am jeweiligen Bauteil platzieren
   (Details + RefDes: [`schaltung/08-testpunkte.md`](schaltung/08-testpunkte.md)).
 
 ### U1 – Controller (zentral)

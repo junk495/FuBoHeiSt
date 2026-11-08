@@ -37,7 +37,7 @@ Stand: vor Schaltplan. Vollständige Liste aller PCB-Bauteile mit Mengen.
 | Wert | Menge | Verwendung |
 |---|---|---|
 | 10 nF | 4 | Ladungspumpe VCP→VM (Universal-Footprint für DRV8833 / DRV8833C) |
-| 100 nF | 10 | C1 + 3× IC-Abblock + 4× VM-DRV8833 + ME6217-Eingang + Reserve |
+| 100 nF | 9 + 1 Reserve | C1 + 3× IC-Abblock (C15/C16/C17) + 4× VM-DRV8833 (C11–C14) + ME6217-Eingang (C18) |
 | 10 µF | 7 | C2 + 4× VINT + ME6217-Ausgang + C20 (VM-Bulk) |
 
 ## Dioden & Schutz
@@ -52,7 +52,7 @@ Stand: vor Schaltplan. Vollständige Liste aller PCB-Bauteile mit Mengen.
 
 | Bauteil | Menge | Status |
 |---|---|---|
-| Buzzer MLT-8540H | 1 | ✅ haben |
+| Buzzer MLT-8540H (4-pol, 2 Pads nur mechanisch/NC) | 1 | ✅ haben |
 | Buchsenleiste 1×22 (RM 2,54 mm) | 2 | 🛒 kaufen (DevKitC-1-Steckplatz) |
 | XH2.54 2-pol (HX-XH2.54-2PZZ) | 10 | ✅ haben (8× Motor: 7 Heizkreise + 1 Reserve + 5-V-Eingang + SSR-Steuerung) |
 | XH2.54 3-pol | 1 | ✅ haben (1-Wire DS18B20) |

@@ -92,13 +92,13 @@ GPIO18 ─► nSLEEP (alle)   ·   GPIO21 ◄─ nFAULT (alle, wire-AND)
 | M6_IN1 / M6_IN2 | U4.9 / U4.10 |
 | M7_IN1 / M7_IN2 | U5.16 / U5.15 |
 | M8_IN1 / M8_IN2 | U5.9 / U5.10 |
-| M1_A / M1_B | U2.2 / U2.4 → CN1.1 / CN1.2 |
+| M1_A / M1_B | U2.2 / U2.4 → CN1.2 / CN1.1 |
 | M2_A / M2_B | U2.7 / U2.5 → CN2.1 / CN2.2 |
-| M3_A / M3_B | U3.2 / U3.4 → CN3.1 / CN3.2 |
+| M3_A / M3_B | U3.2 / U3.4 → CN3.2 / CN3.1 |
 | M4_A / M4_B | U3.7 / U3.5 → CN4.1 / CN4.2 |
-| M5_A / M5_B | U4.2 / U4.4 → CN5.1 / CN5.2 |
+| M5_A / M5_B | U4.2 / U4.4 → CN5.2 / CN5.1 |
 | M6_A / M6_B | U4.7 / U4.5 → CN6.1 / CN6.2 |
-| M7_A / M7_B | U5.2 / U5.4 → CN7.1 / CN7.2 |
+| M7_A / M7_B | U5.2 / U5.4 → CN7.2 / CN7.1 |
 | M8_A / M8_B | U5.7 / U5.5 → CN8.1 / CN8.2 |
 
 ## 6. Hinweise
@@ -109,3 +109,4 @@ GPIO18 ─► nSLEEP (alle)   ·   GPIO21 ◄─ nFAULT (alle, wire-AND)
 - nFAULT (GPIO21) aller Chips wire-AND (open-drain) + Pullup.
 - Reserve-Kanal (U5-B): voll verkabelt (GPIO41/42 → BIN1/BIN2, CN8) als Hot-Swap-Reserve – kein fester Heizkreis.
 - XH2.54: Pin 1 + 2 (Polarität egal – die Umpolung übernimmt die H-Brücke).
+- **A/B-Polarität je Stecker gemischt** (CN1/3/5/7 haben A auf Pin 2, CN2/4/6/8 auf Pin 1) – bewusst für besseres Routing/Beschriftung, funktional irrelevant.

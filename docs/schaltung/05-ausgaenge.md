@@ -22,7 +22,7 @@ GPIO39 ─► R15 (1k) ─► Q2 (AO3400A) ─► BZ1 (Buzzer)  [D1 Freilauf]
 | R13, R15 | 1 kΩ | 0805 | — | Gate-Vorwiderstand |
 | R14, R16 | 10 kΩ | 0805 | — | Gate-Source-Pulldown |
 | CN10 | XH2.54 2-pol | THT 2,54 mm | — | SSR-Steuerung |
-| BZ1 | MLT-8540H (2,5–4,5 V) | SMD 8,5×8,5 | C95298 | Fehler-Signalton |
+| BZ1 | MLT-8540H (2,5–4,5 V) | SMD 8,5×8,5 (4 Pads) | C95298 | Fehler-Signalton |
 | D1 | 1N4148W | SOD-123 | C7420318 | Buzzer-Freilauf |
 | SSR | 3,3 V, 40 A (extern) | — | — | Hauptventil (230 V) |
 
@@ -45,6 +45,7 @@ GPIO39 ─► R15 (1k) ─► Q2 (AO3400A) ─► BZ1 (Buzzer)  [D1 Freilauf]
 - **SSR-Verdrahtung (CN10):** Pin 2 (`+`) an **+3V3**, Pin 1 (`−`) an `Q1.3 (D)` (Low-Side-Schalter).
 - **SSR-Mindestlast prüfen:** 40-A-SSR an kleinem Kugelhahn (< 50 mA) schaltet evtl. nicht sauber → ggf. kleines Relais/2-A-SSR (z. B. Omron G3MB-202P).
 - Buzzer ist **passiv** → GPIO39 liefert Rechtecksignal (z. B. 2,7 kHz) über Q2.
+- BZ1-Footprint **4 Pads**: 2 elektrisch (Pin 1 = +3V3, Pin 2 = BUZ_LO), 2 nur mechanische Befestigung (NC).
 - D1 (1N4148W) als Freilauf über BZ1: Anode → Drain (BUZ_LO), Kathode → +3V3.
 - R14/R16 (10 kΩ) halten das Gate beim ESP32-Boot sicher auf GND (Q1/Q2 gesperrt).
 - AO3400A: R_DS(on) ~35 mΩ bei 3,3 V → vernachlässigbarer Spannungsabfall, volle 3,3 V an SSR/Buzzer (kein V_CE(sat) wie beim SS8050).

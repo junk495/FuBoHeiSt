@@ -22,8 +22,8 @@
 | 38 | 35 | Ripple-PCNT | RIPPLE | in |
 | 39 | 36 | Buzzer | BUZZER | out (PWM) |
 | 40 | 37 | 1-Wire | 1WIRE | bidirektional |
-| 43 | 43 | UART TX (Debug) | UART_TX | out |
-| 44 | 42 | UART RX (Debug) | UART_RX | in |
+| 43 | 43 | UART TX (Debug) | TXD | out |
+| 44 | 42 | UART RX (Debug) | RXD | in |
 | 47 | 28 | SSR | SSR_CTRL | out |
 
 ## 2. Versorgungs-Pins (U1)
@@ -50,6 +50,6 @@
 ## 4. Hinweise
 
 - **Gemieden:** Strapping (GPIO0/3/45/46), USB-OTG (19/20), OPI-PSRAM (GPIO33–37, N16R8).
-- **UART0 (GPIO43/44) als Debug-Header (CN12)** – firmware-seitig frei, da das Logging über USB-CDC läuft. Achtung: Auf dem DevKitC-1 hängt der On-Board-CH343P (rechte USB-Buchse) parallel an 43/44 → nur eine Quelle gleichzeitig (siehe `08-testpunkte.md`).
+- **UART0 (GPIO43/44) als Debug-Header (CN-UART)** – firmware-seitig frei, da das Logging über USB-CDC läuft. Achtung: Auf dem DevKitC-1 hängt der On-Board-CH343P (rechte USB-Buchse) parallel an 43/44 → nur eine Quelle gleichzeitig (siehe `08-testpunkte.md`).
 - **JTAG (39–42) frei nutzbar** als normale GPIO (39 = Buzzer, 40 = 1-Wire, 41/42 = Motor 8 Reserve).
 - Footprint-Pin-Nummern ≠ GPIO-Nummern (z. B. GPIO40 = Footprint-Pin 37) – im Symbol prüfen.

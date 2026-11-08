@@ -1,10 +1,14 @@
 # 08 – Testpunkte & Debug-Header
 
 > Zweck: Debug-/Diagnose-Zugänge für Inbetriebnahme und Fehlersuche.
-> Enthält den UART-Debug-Header (CN12) und Messpunkte (TPx) für die wichtigsten Netze.
+> Enthält den UART-Debug-Header (CN-UART) und Messpunkte (TPx) für die wichtigsten Netze.
 > RefDes/Netze: siehe `00-referenz.md`.
+>
+> **Hinweis:** Die Messpunkte TP1–TP14 existieren **nur als PCB-Pads** (kein
+> Schaltplan-Symbol, nicht in der Netzliste) – sie werden im PCB direkt auf die
+> jeweiligen Netze gelegt.
 
-## 1. UART-Debug-Header (CN12)
+## 1. UART-Debug-Header (CN-UART)
 
 Zum Debuggen/Loggen über eine externe USB-UART-Adapterkarte. Der Controller ist
 pin-technisch voll, daher wird **UART0** genutzt – er ist firmware-seitig frei
@@ -13,18 +17,19 @@ pin-technisch voll, daher wird **UART0** genutzt – er ist firmware-seitig frei
 | Pin | Netz | GPIO | Footprint-Pin (DevKitC-1) | Richtung |
 |---|---|---|---|---|
 | 1 | GND | — | — | — |
-| 2 | +3V3 | — | — | Versorgung |
-| 3 | UART_TX | GPIO43 (U0TXD) | 43 | out |
-| 4 | UART_RX | GPIO44 (U0RXD) | 42 | in |
+| 2 | RXD | GPIO44 (U0RXD) | 42 | in |
+| 3 | TXD | GPIO43 (U0TXD) | 43 | out |
+| 4 | +3V3 | — | — | Versorgung |
 
-**Stecker:** XH2.54 4-pol (wie CN1–CN11).
+**Stecker:** XH2.54 4-pol (wie CN1–CN12).
 
 > **Wichtig – CH343P-Konflikt:** GPIO43/44 sind auf dem DevKitC-1 über den
 > On-Board-Chip **CH343P** auf die **rechte USB-C-Buchse** geführt. Ein externer
-> Adapter am CN12 und der CH343P hängen damit parallel an derselben Leitung.
+> Adapter am CN-UART und der CH343P hängen damit parallel an derselben Leitung.
 > Reines Abhören (nur TX) ist unkritisch; für bidirektionales Debugging darf nur
-> **eine** Quelle gleichzeitig angeschlossen sein. Ob sich der CH343P per
-> 0-Ω-Brücke trennen lässt, ist am Board zu prüfen (nicht dokumentiert).
+> **eine** Quelle gleichzeitig angeschlossen sein (TXD/RXD am Adapter kreuzen:
+> ESP32-TXD → Adapter-RXD). Ob sich der CH343P per 0-Ω-Brücke trennen lässt, ist
+> am Board zu prüfen (nicht dokumentiert).
 
 ## 2. Testpunkte – volle Version
 
@@ -52,7 +57,7 @@ Bedarf über die übrigen Pads nachrüsten.
 
 | Ref | Netz | Warum |
 |---|---|---|
-| CN12 | UART_TX / UART_RX | Debug-/Log-Ausgabe (4-pol Header) |
+| CN-UART | TXD / RXD | Debug-/Log-Ausgabe (4-pol Header) |
 | TP7 | nFAULT | Motor-Fehler (wire-AND) |
 | TP8 | nSLEEP | Treiber aktiv/inaktiv |
 | TP9 | ISEN | Motorstrom-Messung |
@@ -62,9 +67,9 @@ Bedarf über die übrigen Pads nachrüsten.
 
 - **Kein JTAG verfügbar:** Die JTAG-Pins GPIO39–42 sind bereits belegt
   (39 = Buzzer, 40 = 1-Wire, 41/42 = Motor 8). Breakpoint-Debugging ist nicht
-  möglich – Debuggen läuft über **Serial-Logging** (USB-CDC und/oder CN12).
+  möglich – Debuggen läuft über **Serial-Logging** (USB-CDC und/oder CN-UART).
 - Testpunkte als **gelötete Pads** (z. B. Ø 1,0 mm) nahe am jeweiligen Bauteil
   platzieren; TP4 (GND) mehrfach setzen, damit jede Messung eine kurze
   Masse-Referenz hat.
 - Analoge Messpunkte (TP9–TP11) **fern vom SSR** anordnen (siehe `../pcb-design.md` §1).
-- Netznamen `UART_TX`/`UART_RX` und RefDes `CN12` sind in `00-referenz.md` ergänzt.
+- Netznamen `TXD`/`RXD` und RefDes `CN-UART` sind in `00-referenz.md` ergänzt.
