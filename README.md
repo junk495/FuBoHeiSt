@@ -181,7 +181,7 @@ fbh/config/...                 → Parameter (publish)
 
 ## 6. Offene Punkte (TODO)
 - [x] Hauptventil: SSR (3,3 V, 40 A) – geklärt
-- [ ] BLE-Sensor-Modell festlegen (LYWSD03MMC hat Versions-Risiko → Alternativen, siehe `docs/sensorik.md`)
+- [x] BLE-Sensor-Modell festgelegt: LYWSD03MMC mit pvvx-Firmware, Advertising **BTHome v2** (Details in `docs/sensorik.md`)
 - [ ] Vorlauftemperatur messen → entscheidet, ob ein Bodensensor nötig ist
 - [ ] Holz-Bodentemperatur-Grenzwert final nach Herstellerangabe prüfen
 - [x] Pin-Belegung finalisiert
@@ -191,6 +191,18 @@ fbh/config/...                 → Parameter (publish)
 2. EasyEDA-Schaltplan + Trägerplatine (DRV8833, INA219, Ripple-Kette, SSR)
 3. Firmware-Grundgerüst (PlatformIO + Arduino-ESP32, ESP32-S3)
 4. Kalibrier-/Logging-Phase → thermisches Modell (KI-Tuning)
+
+### Firmware-Stand (Logging)
+Die Firmware (`firmware/src`) liest aktuell **6 BLE-Raumfühler** (BTHome v2) aus und
+pusht die **Raumtemperaturen** an **ThingSpeak** (Feld 1–6, ein Kanal).
+
+- WLAN-Zugangsdaten werden **nicht fest kodiert**, sondern beim ersten Start über ein
+  **Captive-Portal** (Hotspot „FuBoHeiSt-Setup") eingegeben und im **NVS** gespeichert.
+- Konfiguration (Fühlerliste, Intervalle) in `firmware/include/config.h`.
+- Secrets (ThingSpeak-Key) in `firmware/include/secrets.h` (gitignored, Vorlage: `secrets.example.h`).
+- **Offline-first bleibt gewahrt:** ThingSpeak ist nur Logging (Entwicklung/Auswertung).
+  Fällt das Internet aus, läuft der spätere Regelkreis lokal weiter.
+- Der Motor-Bringup (Stufe 1) liegt als Referenz in `firmware/test/motor_bringup/`.
 
 ### Geplante Projektstruktur
 ```

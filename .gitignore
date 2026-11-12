@@ -44,3 +44,6 @@ dist/
 
 # Sensor-Konfiguration (MACs, BLE-Keys, Tokens – niemals committen!)
 sensors/sensors.txt
+
+# Firmware-Secrets (niemals committen!)
+firmware/include/secrets.h
