@@ -1,0 +1,18 @@
+   1: WohnKue
+   ATC_C292A7
+   NAME:     Temperature & humidity sensor
+   ID:       blt.4.1qrergji5g800
+   BLE KEY:  b278bbed170e70c8fec3678810e5d8ee
+   MAC:      A4:C1:38:C2:92:A7
+   IP:       162.120.212.186
+   TOKEN:    39c5f2d89b72359b80ede5c7
+   MODEL:    miaomiaoce.sensor_ht.t2
+   
+   2: Schlafz
+   
+   NAME:     Temperature & humidity sensor
+   ID:       blt.4.1qrfhm41dg800
+   BLE KEY:  b6d32833874279f3ab214f52a1c5e9da
+   MAC:      A4:C1:38:51:E4:5B
+   TOKEN:    9b80677dea0f0cf8e3c63a0b
+   MODEL:    miaomiaoce.sensor_ht.t2
