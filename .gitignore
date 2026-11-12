@@ -41,3 +41,6 @@ dist/
 .env
 .env.*
 !.env.example
+
+# Sensor-Konfiguration (MACs, BLE-Keys, Tokens – niemals committen!)
+sensors/sensors.txt
