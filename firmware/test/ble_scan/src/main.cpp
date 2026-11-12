@@ -35,13 +35,15 @@ struct KnownSensor {
 };
 
 // Bekannte Fühler aus sensors/sensors.txt (nur zur Anzeige/Zuordnung, kein Filter).
-// BLE-Namen von Zone 3 (KiZi/Kinderzimmer) und 4 (Bad) sind angenommen –
-// entscheidend ist die MAC, die Zuordnung klappt auch ohne passenden Namen.
+// MACs von WC und Gang aus dem ATC-Namen abgeleitet: "ATC_XXXXXX" = letzte 3 MAC-Bytes
+// (bei WohnKue/Schlafz/Bad bestätigt): E98BCC → A4:C1:38:E9:8B:CC, A1EEFD → A4:C1:38:A1:EE:FD.
 const KnownSensor kKnownSensors[] = {
-    {"WohnKue", "WohnKue", "A4:C1:38:C2:92:A7"},
-    {"Schlafz", "Schlafz", "A4:C1:38:51:E4:5B"},
-    {"KiZi",    "KiZi",    "A4:C1:38:E0:BA:0F"},
-    {"Bad",     "Bad",     "A4:C1:38:36:FB:F1"},
+    {"WohnKue", "WohnKue",    "A4:C1:38:C2:92:A7"},
+    {"Schlafz", "Schlafz",    "A4:C1:38:51:E4:5B"},
+    {"KiZi",    "KiZi",       "A4:C1:38:E0:BA:0F"},
+    {"Bad",     "Bad",        "A4:C1:38:36:FB:F1"},
+    {"WC",      "ATC_E98BCC", "A4:C1:38:E9:8B:CC"},
+    {"Gang",    "ATC_A1EEFD", "A4:C1:38:A1:EE:FD"},
 };
 
 }  // namespace
@@ -216,9 +218,10 @@ void setup() {
 
     Serial.println();
     Serial.println(F("FuBoHeiSt – BLE-Empfangstest (LYWSD03MMC)"));
-    Serial.printf("Bekannte Fühler: %s (Name \"%s\", %s), %s (Name \"%s\", %s)\n",
-                  kKnownSensors[0].zone, kKnownSensors[0].name, kKnownSensors[0].mac,
-                  kKnownSensors[1].zone, kKnownSensors[1].name, kKnownSensors[1].mac);
+    Serial.println(F("Bekannte Fühler:"));
+    for (const auto& s : kKnownSensors) {
+        Serial.printf("  %-8s Name \"%s\"  MAC %s\n", s.zone, s.name, s.mac);
+    }
     Serial.printf("Scan: passiv, Fenster %lu s, Duplikate sichtbar\n\n",
                   static_cast<unsigned long>(kScanWindowMs / 1000));
 
