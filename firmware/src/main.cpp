@@ -27,13 +27,15 @@ void setup() {
 }
 
 void loop() {
+    static bool firstRun = true;
     static uint32_t lastCycle = 0;
     const uint32_t now = millis();
 
-    if (now - lastCycle < Config::UPDATE_INTERVAL_MS) {
+    if (!firstRun && now - lastCycle < Config::UPDATE_INTERVAL_MS) {
         delay(100);
         return;
     }
+    firstRun = false;
     lastCycle = now;
 
     Serial.println(F("--- Scan ---"));
