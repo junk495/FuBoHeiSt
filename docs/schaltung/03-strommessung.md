@@ -48,5 +48,7 @@
 
 - Shunt = **0,5 Ω** (2× 1 Ω parallel). 120 mA → 60 mV; Anlauf-Peak ~180–250 mA → 90–125 mV.
 - Firmware: INA219-PGA **÷4 (±160 mV)** oder **÷8 (±320 mV)** – nicht ÷2 (Sättigung beim Anlauf).
+- **Shunt-Register-LSB (wichtig!):** ÷1 = 10 µV, ÷2 = 20 µV, **÷4 = 40 µV**, ÷8 = 80 µV.
+  Bei ÷4 muss `SHUNT_LSB_MICROVOLT` in `CurrentSense.cpp` **40** sein (nicht 10).
 - Adresse 0x40 (A0 = A1 = GND).
 - Der INA219 hat **keinen internen Shunt** – der 0,5-Ω-Shunt wird extern platziert.

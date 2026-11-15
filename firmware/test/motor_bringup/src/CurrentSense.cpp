@@ -13,7 +13,7 @@ constexpr uint8_t  REG_BUS     = 0x02;
 constexpr uint16_t CONFIG_VALUE = 0x119F;
 
 constexpr float SHUNT_OHM          = 0.5f;  // 2× 1 Ω parallel
-constexpr float SHUNT_LSB_MICROVOLT = 10.0f; // LSB Shunt-Register = 10 µV
+constexpr float SHUNT_LSB_MICROVOLT = 40.0f; // LSB Shunt-Register = 40 µV (PGA ÷4, ±160 mV)
 }
 
 void CurrentSense::begin() {

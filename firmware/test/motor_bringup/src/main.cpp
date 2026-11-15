@@ -133,7 +133,7 @@ void printStatus() {
     sense.read();
     Serial.println(F("--- Status ---"));
     Serial.println(F("INA219 0x40 (0,5 Ω Shunt, PGA ÷4 = ±160 mV):"));
-    Serial.printf("  Shunt-Roh: %d (LSB=10 µV)\n", sense.rawShunt());
+    Serial.printf("  Shunt-Roh: %d (LSB=40 µV)\n", sense.rawShunt());
     Serial.printf("  Shunt: %.2f mV\n", sense.shuntMillivolts());
     Serial.printf("  Strom: %.2f mA\n", sense.currentMilliamps());
     Serial.printf("  Bus: %.3f V\n", sense.busVolts());
