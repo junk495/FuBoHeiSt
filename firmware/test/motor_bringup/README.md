@@ -19,6 +19,7 @@ pio device monitor
 | `f` | vorwärts fahren bis Stall/Timeout |
 | `r` | rückwärts fahren bis Stall/Timeout |
 | `s` | Stopp (Brake) |
+| `m<Wert>` | Stall-Schwelle setzen (mA), `m` = anzeigen |
 | `i` | INA219-Status + nFAULT/PCNT |
 | `b` | Buzzer-Piep |
 | `t` | DS18B20 lesen |
@@ -29,7 +30,10 @@ Stall-Schwelle am echten HmIP-VDMOT ermitteln.
 
 ## Hinweis
 
-Die Motor-Module (`MotorDriver`, `CurrentSense`, `RippleCounter`) und `pins.h`
+- Stall-Erkennung: Nach dem Start gilt eine Blindzeit (400 ms), damit der
+  Anlaufstrom (Inrush, laut Doku 180–250 mA) keinen Falsch-Stall auslöst.
+  Ohne frischen INA219-Messwert wird nicht entschieden (keine veralteten Werte).
+- Die Motor-Module (`MotorDriver`, `CurrentSense`, `RippleCounter`) und `pins.h`
 sind **Kopien** aus `firmware/src` bzw. `firmware/include`. Bei Änderungen an den
 Originalen diese Kopien hier ggf. nachziehen.
 
