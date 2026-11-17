@@ -22,6 +22,8 @@ uint8_t currentChannel = 0;              // 0 = Kanal 1 (Zone 1)
 float stallThresholdMa = 100.0f;         // Startwert – wird am Ventil kalibriert
 const unsigned long moveTimeoutMs   = 15000;
 const unsigned long stallDebounceMs = 100;
+const unsigned long sampleIntervalMs = 10;   // Abtastung für die Stall-Erkennung
+const unsigned long printIntervalMs  = 500;  // Monitor-Ausgabe (nicht jeden Sample)
 
 void printHelp();
 void printStatus();
@@ -85,6 +87,7 @@ void runMove(MotorState dir, const char* name) {
 
     unsigned long start      = millis();
     unsigned long lastSample = 0;
+    unsigned long lastPrint  = 0;
     unsigned long stallSince = 0;
 
     Serial.printf("Fahre Kanal %d %s … (Abbruch: Taste | Timeout %lu ms | Stall > %.0f mA)\n",
@@ -101,7 +104,7 @@ void runMove(MotorState dir, const char* name) {
         if (now - start >= moveTimeoutMs) { Serial.println(F("Timeout")); break; }
         if (motor.fault()) { Serial.println(F("nFAULT aktiv")); break; }
 
-        if (now - lastSample >= 10) {
+        if (now - lastSample >= sampleIntervalMs) {
             lastSample = now;
             sense.read();
             const float ma = sense.currentMilliamps();
@@ -119,7 +122,12 @@ void runMove(MotorState dir, const char* name) {
                 stallSince = 0;
             }
 
-            Serial.printf("  t=%lu ms | I=%6.1f mA | PCNT=%6d\n", now - start, ma, pulses);
+            // Nur alle printIntervalMs ausgeben – die Stall-Erkennung läuft
+            // trotzdem weiter mit sampleIntervalMs (10 ms).
+            if (now - lastPrint >= printIntervalMs) {
+                lastPrint = now;
+                Serial.printf("  t=%lu ms | I=%6.1f mA | PCNT=%6d\n", now - start, ma, pulses);
+            }
         }
     }
 
