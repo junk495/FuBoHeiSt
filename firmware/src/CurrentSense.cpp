@@ -8,12 +8,11 @@ constexpr uint8_t  REG_CONFIG  = 0x00;
 constexpr uint8_t  REG_SHUNT   = 0x01;
 constexpr uint8_t  REG_BUS     = 0x02;
 
-// BRNG = 16 V (00), PG = ÷4 (±160 mV, 10), BADC/SADC = 12-Bit (0x3),
-// MODE = Shunt+Bus continuous (111)  → 0x119F
-constexpr uint16_t CONFIG_VALUE = 0x119F;
+// BRNG = 16 V (00), PG = ÷8 (±320 mV, 11), BADC/SADC = 12-Bit (0x3),
+// MODE = Shunt+Bus continuous (111)  → 0x199F
+constexpr uint16_t CONFIG_VALUE = 0x199F;
 
-constexpr float SHUNT_OHM          = 0.5f;  // 2× 1 Ω parallel
-constexpr float SHUNT_LSB_MICROVOLT = 40.0f; // LSB Shunt-Register = 40 µV (PGA ÷4, ±160 mV)
+constexpr float SHUNT_LSB_MICROVOLT = 80.0f; // LSB Shunt-Register = 80 µV (PGA ÷8, ±320 mV)
 }
 
 void CurrentSense::begin() {
@@ -41,7 +40,7 @@ float CurrentSense::shuntMillivolts() const {
 
 float CurrentSense::currentMilliamps() const {
     // I = U_shunt / R_shunt
-    return shuntMillivolts() / SHUNT_OHM;
+    return shuntMillivolts() / shuntOhm_;
 }
 
 float CurrentSense::busVolts() const {
@@ -67,3 +66,10 @@ uint16_t CurrentSense::readReg(uint8_t reg) const {
     const uint16_t lo = Wire.read();
     return (hi << 8) | lo;
 }
+
+uint16_t CurrentSense::configRegister() const {
+    return readReg(REG_CONFIG);
+}
+
+void CurrentSense::setShuntOhm(float ohm) { shuntOhm_ = (ohm > 0.0f) ? ohm : 0.5f; }
+float CurrentSense::shuntOhm() const { return shuntOhm_; }

@@ -3,6 +3,7 @@
 //   c<N>  Kanal wählen (1..8),  f = vorwärts,  r = rückwärts,  s = Brake,
 //   i     INA219-Status,        b = Buzzer-Piep, t = DS18B20,  h = Hilfe.
 //   m<Wert> Stall-Schwelle setzen (mA), m = anzeigen.
+//   o<Wert> Shunt-Widerstand setzen (mOhm), o = anzeigen.
 // Ziel: P_touch, P_ges und die Stall-Schwelle am echten HmIP-VDMOT ermitteln.
 
 #include <Arduino.h>
@@ -20,7 +21,7 @@ OneWire oneWire(Pin::ONEWIRE);
 DallasTemperature dallas(&oneWire);
 
 uint8_t currentChannel = 0;              // 0 = Kanal 1 (Zone 1)
-float stallThresholdMa = 100.0f;         // Startwert – wird am Ventil kalibriert
+float stallThresholdMa = 60.0f;          // gemessen: frei ~12 mA, blockiert ~98 mA → Mitte; per m<Wert> nachjustierbar
 const unsigned long moveTimeoutMs   = 15000;
 const unsigned long stallDebounceMs = 100;
 const unsigned long stallBlankMs     = 400;   // Blindzeit: Anlaufstrom (Inrush) ignorieren
@@ -88,6 +89,21 @@ void loop() {
             }
             break;
         }
+        case 'o': {
+            const String arg = line.substring(1);
+            if (arg.length() == 0) {
+                Serial.printf("Shunt: %.1f mOhm\n", sense.shuntOhm() * 1000.0f);
+            } else {
+                const float mohm = arg.toFloat();
+                if (mohm > 0.0f) {
+                    sense.setShuntOhm(mohm / 1000.0f);
+                    Serial.printf("Shunt auf %.1f mOhm gesetzt\n", mohm);
+                } else {
+                    Serial.println(F("Ungültiger Wert (z. B. o50 für 50 mOhm)"));
+                }
+            }
+            break;
+        }
         case 'i': printStatus(); break;
         case 'b': beep(); break;
         case 't': readTemp(); break;
@@ -103,6 +119,7 @@ void runMove(MotorState dir, const char* name) {
     }
 
     motor.enable();
+    delay(2);   // DRV8833: Aufwachzeit + Ladungspumpe stabilisieren
     ripple.clear();
     motor.set(currentChannel, dir);
 
@@ -123,7 +140,10 @@ void runMove(MotorState dir, const char* name) {
             break;
         }
         if (now - start >= moveTimeoutMs) { Serial.println(F("Timeout")); break; }
-        if (motor.fault()) { Serial.println(F("nFAULT aktiv")); break; }
+        if (motor.fault()) {
+            Serial.println(F("nFAULT aktiv (OCP/Übertemperatur/UVLO - Ladungspumpe/VM prüfen)"));
+            break;
+        }
 
         if (now - lastSample >= sampleIntervalMs) {
             lastSample = now;
@@ -165,7 +185,7 @@ void runMove(MotorState dir, const char* name) {
     }
 
     motor.brake(currentChannel);
-    motor.disable();
+    motor.disable();              // nSLEEP LOW löscht auch ein gelatchtes nFAULT
     delay(100);
     Serial.printf("Ende: PCNT=%d\n", ripple.count());
 }
@@ -176,8 +196,10 @@ void printStatus() {
     Serial.println(F("--- Status ---"));
     Serial.printf("  INA219: %s\n", present ? "gefunden" : "NICHT gefunden");
     if (!fresh) Serial.println(F("  Achtung: kein frischer Messwert (I2C-Fehler)"));
-    Serial.println(F("INA219 0x40 (0,5 Ω Shunt, PGA ÷4 = ±160 mV):"));
-    Serial.printf("  Shunt-Roh: %d (LSB=40 µV)\n", sense.rawShunt());
+    Serial.printf("INA219 0x40 (Shunt %.1f Ω, PGA ÷8 = ±320 mV):\n", sense.shuntOhm());
+    const uint16_t cfg = sense.configRegister();
+    Serial.printf("  Config: 0x%04X %s\n", cfg, cfg == 0x199F ? "(ok)" : "(FEHLER: Soll 0x199F)");
+    Serial.printf("  Shunt-Roh: %d (LSB=80 µV)\n", sense.rawShunt());
     Serial.printf("  Shunt: %.2f mV\n", sense.shuntMillivolts());
     Serial.printf("  Strom: %.2f mA\n", sense.currentMilliamps());
     Serial.printf("  Bus: %.3f V\n", sense.busVolts());
@@ -209,6 +231,7 @@ void printHelp() {
     Serial.println(F("  r      rückwärts bis Stall/Timeout"));
     Serial.println(F("  s      Stopp (Brake)"));
     Serial.println(F("  m<Wert> Stall-Schwelle setzen (mA), m = anzeigen"));
+    Serial.println(F("  o<Wert> Shunt-Widerstand setzen (mOhm), o = anzeigen"));
     Serial.println(F("  i      INA219-Status + nFAULT/PCNT"));
     Serial.println(F("  b      Buzzer-Piep"));
     Serial.println(F("  t      DS18B20 lesen"));

@@ -20,13 +20,14 @@ pio device monitor
 | `r` | rückwärts fahren bis Stall/Timeout |
 | `s` | Stopp (Brake) |
 | `m<Wert>` | Stall-Schwelle setzen (mA), `m` = anzeigen |
+| `o<Wert>` | Shunt-Widerstand setzen (mOhm), `o` = anzeigen |
 | `i` | INA219-Status + nFAULT/PCNT |
 | `b` | Buzzer-Piep |
 | `t` | DS18B20 lesen |
 | `h` | Hilfe |
 
-Kanal 1 = Zone 1 (IN1=GPIO4, IN2=GPIO5). Ziel: `P_touch`, `P_ges` und die
-Stall-Schwelle am echten HmIP-VDMOT ermitteln.
+Kanal 1 = Zone 1 (IN1=GPIO4, IN2=GPIO5). Ziel: `P_touch`, `P_ges` ermitteln.
+Gemessen am Motor: frei ~12 mA, blockiert ~98 mA → Stall-Schwelle Default 60 mA.
 
 ## Hinweis
 
