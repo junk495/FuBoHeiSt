@@ -27,12 +27,12 @@ pio device monitor
 | `h` | Hilfe |
 
 Kanal 1 = Zone 1 (IN1=GPIO4, IN2=GPIO5). Ziel: `P_touch`, `P_ges` ermitteln.
-Gemessen am Motor: frei ~12 mA, blockiert ~98 mA → Stall-Schwelle Default 60 mA.
+Gemessen: Lauf ~17 mA, Endlage (blockiert) ~70–120 mA → Stall-Schwelle Default 60 mA.
 
 ## Hinweis
 
 - Stall-Erkennung: Nach dem Start gilt eine Blindzeit (400 ms), damit der
-  Anlaufstrom (Inrush, laut Doku 180–250 mA) keinen Falsch-Stall auslöst.
+  Anlaufstrom (Inrush) keinen Falsch-Stall auslöst.
   Ohne frischen INA219-Messwert wird nicht entschieden (keine veralteten Werte).
 - Die Motor-Module (`MotorDriver`, `CurrentSense`, `RippleCounter`) und `pins.h`
 sind **Kopien** aus `firmware/src` bzw. `firmware/include`. Bei Änderungen an den

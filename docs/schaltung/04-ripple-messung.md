@@ -82,22 +82,22 @@ ISEN (alle AISEN/BISEN) ─►[R19∥R20 = 0,5 Ω]─► GND
 
 ## 6. Spannungspegel (Startwerte)
 
-| Punkt | @ ~33 mA Lauf (gemessen) | @ ~120 mA blockiert (gemessen) |
+| Punkt | @ ~33 mA vorwärts | @ ~151 mA rückwärts (Last) |
 |---|---|---|
-| ISEN-Shunt (0,5 Ω) | ~16,5 mV DC (Ripple ~60 mV Spitze an MCP_OUT) | ~60 mV DC, **0 mV Ripple** (Motor steht) |
-| MCP602 OUT1 (Gain 23) | ~380 mV DC | ~1,38 V DC, **0 mV Ripple** |
+| ISEN-Shunt (0,5 Ω) | ~16,5 mV DC | ~75 mV DC |
+| MCP602 OUT1 (Gain 23) | ~380 mV DC (Ripple ~60 mV Spitze) | ~1,7 V DC (Ripple 0,4–0,6 V) |
 | LM393 IN− (Mittel + Offset) | ~OUT1 + Offset | ~OUT1 + Offset |
 | LM393 OUT → PCNT | Rechteck bei Ripple-Frequenz (0/3,3 V) | **konstant, keine Pulse** |
 
 ## 7. Hinweise
 
-- Ripple (Oszi an MCP_OUT): ~60 mV kurze Spitze bei ~33 mA Lauf. Slicer-Offset (R6=22k → ~143 mV) ist dafür zu hoch → R6 auf ~68 kΩ erhöhen (Offset ~48 mV).
-- **Gesamt-Spannungsabfall @ 120 mA blockiert (gemessen):**
-  - **DRV8833** (N-Kanal, R_DS(on) ≈ 0,36 Ω): 60 mV (INA219-Shunt) + ~43 mV (DRV8833) + 60 mV (ISEN-Shunt) ≈ **163 mV** → **~3,14 V** am Motor.
-  - **DRV8833C** (P-Kanal High-Side, R_DS(on) HS+LS ≈ 1,74 Ω): 60 mV (INA219-Shunt) + ~208 mV (DRV8833C) + 60 mV (ISEN-Shunt) ≈ **328 mV** → **~2,97 V** am Motor.
-  - Für den 3,3-V-VDMOT sind beide Werte unkritisch (Lauf ~33 mA → deutlich weniger Abfall).
+- Ripple (Oszi an MCP_OUT): vorwärts ~60 mV Spitze, rückwärts 0,4–0,6 V Spitzen. Mit R6=68k (Offset ~48 mV) zählt der Slicer jetzt (PCNT>0).
+- **Gesamt-Spannungsabfall @ 700 mA Endlage (blockiert):**
+  - **DRV8833** (N-Kanal, R_DS(on) ≈ 0,36 Ω): 350 mV (INA219-Shunt) + ~252 mV (DRV8833) + 350 mV (ISEN-Shunt) ≈ **952 mV** → **~2,35 V** am Motor.
+  - **DRV8833C** (P-Kanal High-Side, R_DS(on) HS+LS ≈ 1,74 Ω): 350 mV + ~1218 mV + 350 mV ≈ **1,92 V** → **~1,38 V** am Motor.
+  - Der N-Kanal-Treiber ist zu bevorzugen; der DRV8833C verliert an der Endlage fast 2 V (vorwärts/rückwärts im Lauf unkritisch).
 - **MCP602 & LM393 an +5V** (mehr Headroom); **Pullup an +3V3** (PCNT-sicher).
 - **MCP602 Kanal B als Spannungsfolger** (OpAmp); **LM393 Kanal 2 NICHT als Folger** (Komparator würde schwingen) → Eingänge fest, Ausgang NC.
 - Am ISEN fließt der Strom immer positiv Richtung GND → massebezogenes Signal, **kein Bias** nötig.
-- **Gain = 1 + R3/R2 = 23.** Lauf ~33 mA → ~380 mV, blockiert ~120 mA → ~1,38 V.
+- **Gain = 1 + R3/R2 = 23.** vorwärts ~33 mA → ~380 mV, rückwärts ~151 mA → ~1,7 V, Endlage ~700 mA → sättigt.
 - Data Slicer: τ = R5·C2 ≈ 10 ms (schnelles Einschwingen beim Anlauf); Offset ~143 mV über der +69-mV-Hysterese.

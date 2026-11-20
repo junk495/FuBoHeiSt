@@ -12,7 +12,7 @@ constexpr uint8_t  REG_BUS     = 0x02;
 // MODE = Shunt+Bus continuous (111)  → 0x199F
 constexpr uint16_t CONFIG_VALUE = 0x199F;
 
-constexpr float SHUNT_LSB_MICROVOLT = 80.0f; // LSB Shunt-Register = 80 µV (PGA ÷8, ±320 mV)
+constexpr float SHUNT_LSB_MICROVOLT = 10.0f; // LSB Shunt-Register = 10 µV (fix; PGA ändert nur den Messbereich)
 }
 
 void CurrentSense::begin() {

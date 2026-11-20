@@ -21,7 +21,7 @@ OneWire oneWire(Pin::ONEWIRE);
 DallasTemperature dallas(&oneWire);
 
 uint8_t currentChannel = 0;              // 0 = Kanal 1 (Zone 1)
-float stallThresholdMa = 60.0f;          // gemessen: frei ~12 mA, blockiert ~98 mA → Mitte; per m<Wert> nachjustierbar
+float stallThresholdMa = 60.0f;          // Lauf ~17 mA, Endlage (blockiert) ~70–120 mA → Mitte; per m<Wert> nachjustierbar
 const unsigned long moveTimeoutMs   = 15000;
 const unsigned long stallDebounceMs = 100;
 const unsigned long stallBlankMs     = 400;   // Blindzeit: Anlaufstrom (Inrush) ignorieren
@@ -199,7 +199,7 @@ void printStatus() {
     Serial.printf("INA219 0x40 (Shunt %.1f Ω, PGA ÷8 = ±320 mV):\n", sense.shuntOhm());
     const uint16_t cfg = sense.configRegister();
     Serial.printf("  Config: 0x%04X %s\n", cfg, cfg == 0x199F ? "(ok)" : "(FEHLER: Soll 0x199F)");
-    Serial.printf("  Shunt-Roh: %d (LSB=80 µV)\n", sense.rawShunt());
+    Serial.printf("  Shunt-Roh: %d (LSB=10 µV)\n", sense.rawShunt());
     Serial.printf("  Shunt: %.2f mV\n", sense.shuntMillivolts());
     Serial.printf("  Strom: %.2f mA\n", sense.currentMilliamps());
     Serial.printf("  Bus: %.3f V\n", sense.busVolts());

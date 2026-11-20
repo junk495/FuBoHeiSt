@@ -46,9 +46,9 @@
 
 ## 5. Hinweise
 
-- Shunt = **0,5 Ω** (2× 1 Ω parallel). Gemessen (INA219): Lauf ~33 mA → ~16,5 mV, Blockier ~120 mA → ~60 mV. Anlaufstrom ~800 mA → ~400 mV (sättigt den INA219 auch bei ÷8).
-- Firmware: INA219-PGA **÷8 (±320 mV = ±640 mA bei 0,5 Ω)** – Lauf/Blockier (33/120 mA) liegen gut im Bereich; nur der Anlaufstrom (~800 mA) sättigt.
-- **Shunt-Register-LSB (wichtig!):** ÷1 = 10 µV, ÷2 = 20 µV, ÷4 = 40 µV, **÷8 = 80 µV**.
-  Bei ÷8 muss `SHUNT_LSB_MICROVOLT` in `CurrentSense.cpp` **80** sein.
+- Shunt = **0,5 Ω** (2× 1 Ω parallel). Gemessen (INA219, nach LSB-Korrektur): Lauf ~17 mA → ~8,5 mV, Endlage (blockiert) ~70–120 mA → ~35–60 mV.
+- Firmware: INA219-PGA **÷8 (±320 mV = ±640 mA bei 0,5 Ω)** – Lauf/Blockier (17/100 mA) liegen gut im Bereich.
+- **Shunt-Register-LSB (wichtig!):** fix **10 µV** – der PGA ändert nur den Messbereich, nicht den LSB.
+  `SHUNT_LSB_MICROVOLT` in `CurrentSense.cpp` muss daher **10** sein.
 - Adresse 0x40 (A0 = A1 = GND).
 - Der INA219 hat **keinen internen Shunt** – der 0,5-Ω-Shunt wird extern platziert.
