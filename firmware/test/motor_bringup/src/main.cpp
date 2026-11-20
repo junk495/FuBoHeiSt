@@ -50,10 +50,15 @@ const unsigned long calTimeoutMs = 60000;  // Automatik: großzügiger Timeout (
 const float OPEN_STALL_MA  = 60.0f;   // r-Endlage (hart): Ventil AUF
 const float CLOSE_STALL_MA = 50.0f;   // f-Endlage (Dichtung): Ventil ZU
 
+// Ventil-Positionsverfolgung je Kanal (Pulse ab "auf" = r-Endlage).
+// valveRef = false bedeutet: Referenz verloren → neu holen.
+int32_t valvePos[Pin::MOTOR_COUNT] = {0};
+bool    valveRef[Pin::MOTOR_COUNT] = {false};
+
 // Automatik-Modus: Anzahl Durchläufe, die nach dem Boot ohne Serieleingabe
 // automatisch starten (für den Betrieb am Ventil ohne Monitor).
 // 0 = deaktiviert (nur manuell über den Befehl a<N>). Für den Ventillauf z. B. auf 5 setzen.
-#define AUTO_RUN_COUNT 5
+#define AUTO_RUN_COUNT 0
 #define AUTO_RUN_WAIT_S 20
 
 void printHelp();
@@ -61,6 +66,8 @@ void printStatus();
 DriveResult runMove(MotorState dir, const char* name, bool verbose = true, unsigned long timeoutMs = moveTimeoutMs, String* seriesOut = nullptr);
 void runStandard(int runs);
 DriveResult drive(MotorState dir, unsigned long timeoutMs, float stallMa, int32_t targetPulses, bool verbose, String* seriesOut);
+bool valveAcquireRef(uint8_t channel);
+int32_t valveStroke(uint8_t channel);
 bool valveCalibrate(uint8_t channel);
 bool valveOpen(uint8_t channel);
 bool valveClose(uint8_t channel);
@@ -175,7 +182,16 @@ void loop() {
             const String rest = line.substring(1);
             const int sp = rest.indexOf(' ');
             if (sp < 0) {
-                Serial.println(F("Nutzung: v<N> <0-100>|a|z"));
+                // Position anzeigen
+                const int ch0 = rest.toInt();
+                if (ch0 >= 1 && ch0 <= Pin::MOTOR_COUNT) {
+                    const int32_t stroke = valveStroke(ch0 - 1);
+                    Serial.printf("Kanal %d: Position %d Pulse", ch0, (int)valvePos[ch0 - 1]);
+                    if (stroke > 0) Serial.printf(" (%d %% zu)", (int)(100L * valvePos[ch0 - 1] / stroke));
+                    Serial.printf(" | Hub: %d | Referenz: %s\n", (int)stroke, valveRef[ch0 - 1] ? "ok" : "verloren");
+                } else {
+                    Serial.printf("Ungültiger Kanal (1..%d)\n", Pin::MOTOR_COUNT);
+                }
                 break;
             }
             const int ch = rest.substring(0, sp).toInt();
@@ -247,7 +263,7 @@ DriveResult drive(MotorState dir, unsigned long timeoutMs, float stallMa,
             // Ziel-Pulse erreicht?
             if (targetPulses >= 0 && pulses >= targetPulses) {
                 result.targetReached = true;
-                if (verbose) Serial.printf("ZIEL: PCNT %d >= %d\n", pulses, targetPulses);
+                if (verbose) Serial.printf("ZIEL: PCNT %d >= %d\n", pulses, (int)targetPulses);
                 break;
             }
 
@@ -333,7 +349,21 @@ int32_t valveStroke(uint8_t channel) {
     return stroke;
 }
 
-// Referenzlauf für Kanal: f→zu (Dichtung), r→auf (Anschlag), Hub messen + speichern.
+// Referenz sicherstellen: r bis Anschlag (auf), Position = 0.
+bool valveAcquireRef(uint8_t channel) {
+    currentChannel = channel;
+    Serial.printf("Kanal %d: Referenz holen (r→auf) …\n", channel + 1);
+    DriveResult r = drive(MotorState::Reverse, calTimeoutMs, OPEN_STALL_MA, -1, true, nullptr);
+    if (!r.stalled) {
+        valveRef[channel] = false;
+        return false;
+    }
+    valvePos[channel] = 0;
+    valveRef[channel] = true;
+    return true;
+}
+
+// Referenzlauf: f→zu (Dichtung), r→auf (Anschlag), Hub messen + speichern.
 bool valveCalibrate(uint8_t channel) {
     currentChannel = channel;
 
@@ -345,12 +375,14 @@ bool valveCalibrate(uint8_t channel) {
     DriveResult auf = drive(MotorState::Reverse, calTimeoutMs, OPEN_STALL_MA, -1, true, nullptr);
 
     if (!zu.stalled || !auf.stalled) {
+        valveRef[channel] = false;
         Serial.println(F("Kalibrierung fehlgeschlagen (Endlage nicht erreicht)."));
         return false;
     }
 
     const int32_t stroke = auf.pcnt;   // Hub = Weg von "zu" bis "auf"
     if (stroke <= 0) {
+        valveRef[channel] = false;
         Serial.println(F("Kalibrierung fehlgeschlagen (Hub <= 0)."));
         return false;
     }
@@ -360,16 +392,15 @@ bool valveCalibrate(uint8_t channel) {
     prefs.putInt(("stroke" + String(channel)).c_str(), stroke);
     prefs.end();
 
-    Serial.printf("Kanal %d kalibriert: Hub = %d Pulse (auf = 0, zu = %d).\n", channel + 1, stroke, stroke);
+    valvePos[channel] = 0;
+    valveRef[channel] = true;
+    Serial.printf("Kanal %d kalibriert: Hub = %d Pulse (auf = 0, zu = %d).\n", channel + 1, (int)stroke, (int)stroke);
     return true;
 }
 
-// Ventil ganz öffnen (r bis Anschlag).
+// Ventil ganz öffnen (r bis Anschlag) → Position 0, Referenz gültig.
 bool valveOpen(uint8_t channel) {
-    currentChannel = channel;
-    Serial.printf("Kanal %d: r→auf (Anschlag) …\n", channel + 1);
-    DriveResult r = drive(MotorState::Reverse, calTimeoutMs, OPEN_STALL_MA, -1, true, nullptr);
-    return r.stalled;
+    return valveAcquireRef(channel);
 }
 
 // Ventil ganz schließen (f bis Dichtung).
@@ -377,10 +408,17 @@ bool valveClose(uint8_t channel) {
     currentChannel = channel;
     Serial.printf("Kanal %d: f→zu (Dichtung) …\n", channel + 1);
     DriveResult r = drive(MotorState::Forward, calTimeoutMs, CLOSE_STALL_MA, -1, true, nullptr);
+    if (r.stalled) {
+        const int32_t stroke = valveStroke(channel);
+        if (stroke > 0) valvePos[channel] = stroke;
+        valveRef[channel] = true;
+    } else {
+        valveRef[channel] = false;   // Timeout/Abbruch → Referenz verloren
+    }
     return r.stalled;
 }
 
-// Ventil auf X % schließen (0 = auf, 100 = zu).
+// Ventil auf X % schließen (0 = auf, 100 = zu). Fährt direkt von der aktuellen Position.
 bool valveMoveTo(uint8_t channel, uint8_t percent) {
     currentChannel = channel;
 
@@ -393,18 +431,36 @@ bool valveMoveTo(uint8_t channel, uint8_t percent) {
         return false;
     }
 
-    const int32_t target = (int32_t)stroke * percent / 100;
+    const int32_t target = stroke * percent / 100;
 
-    // Erst auf (Referenz 0), dann f bis Ziel.
-    if (!valveOpen(channel)) {
-        Serial.println(F("Fehler: auf-Referenz nicht erreicht."));
+    // Referenz sicherstellen
+    if (!valveRef[channel]) {
+        if (!valveAcquireRef(channel)) return false;
+    }
+
+    const int32_t delta = target - valvePos[channel];
+    if (delta == 0) {
+        Serial.printf("Kanal %d: bereits an %d %% (%d Pulse).\n", channel + 1, percent, (int)valvePos[channel]);
+        return true;
+    }
+
+    if (delta > 0) {
+        // schließen (f) um delta Pulse
+        Serial.printf("Kanal %d: f→%d %% (%+d Pulse) …\n", channel + 1, percent, (int)delta);
+        DriveResult r = drive(MotorState::Forward, calTimeoutMs, CLOSE_STALL_MA, delta, true, nullptr);
+        if (r.stalled) { valvePos[channel] = stroke; valveRef[channel] = true; return true; }
+        if (r.targetReached) { valvePos[channel] = target; valveRef[channel] = true; return true; }
+        valveRef[channel] = false;
+        return false;
+    } else {
+        // öffnen (r) um -delta Pulse
+        Serial.printf("Kanal %d: r→%d %% (%+d Pulse) …\n", channel + 1, percent, (int)delta);
+        DriveResult r = drive(MotorState::Reverse, calTimeoutMs, OPEN_STALL_MA, -delta, true, nullptr);
+        if (r.stalled) { valvePos[channel] = 0; valveRef[channel] = true; return true; }
+        if (r.targetReached) { valvePos[channel] = target; valveRef[channel] = true; return true; }
+        valveRef[channel] = false;
         return false;
     }
-    delay(500);
-
-    Serial.printf("Kanal %d: f→%d %% (%d Pulse) …\n", channel + 1, percent, target);
-    DriveResult move = drive(MotorState::Forward, calTimeoutMs, CLOSE_STALL_MA, target, true, nullptr);
-    return move.targetReached || move.stalled;
 }
 
 void runStandard(int runs) {

@@ -55,9 +55,13 @@ Dazu je Richtung eine Zeitreihe (alle 0,5 s):
 Anschläge: **`r` = Kolben-Reverse-Endlage = Ventil AUF (hart)**, **`f` = Kolben-Forward-Endlage = Ventil ZU (Gummidichtung)**.
 
 1. **Kalibrieren (je Ventil):** `k<N>` – fährt f→zu (Dichtung), r→auf (Anschlag), misst den Hub und speichert ihn im NVS (`stroke<N>`).
-2. **Positionieren:** `v<N> <X%>` – fährt erst auf (Referenz 0), dann f bis X % des Hubs.
+2. **Positionieren:** `v<N> <X%>` – fährt **direkt von der aktuellen Position** zum Ziel.
+   - `v<N>` (ohne Argument) zeigt Position/Hub/Referenzstatus.
    - `v<N> a` = ganz auf, `v<N> z` = ganz zu.
 3. Referenz = `r`-Endlage (hart, ~70 mA). Der Hub liegt typisch bei ~6900 Pulsen.
+4. Die Position wird im RAM je Kanal verfolgt. Die Referenz wird **nur neu geholt**,
+   wenn sie verloren ist (Boot, Timeout/Abbruch/nFAULT). Ein periodisches
+   Neu-Kalibrieren (festes Zeitintervall) folgt später.
 
 ## Hinweis
 
