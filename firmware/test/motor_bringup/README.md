@@ -23,6 +23,8 @@ pio device monitor
 | `o<Wert>` | Shunt-Widerstand setzen (mOhm), `o` = anzeigen |
 | `a<N>` | Automatik: N× (r→Endlage, f→Endlage), Log in NVS |
 | `d` | Log aus NVS auslesen |
+| `k<N>` | Ventil N kalibrieren (Referenzlauf, Hub speichern) |
+| `v<N> <0-100>\|a\|z` | Ventil N auf X% schließen (a = auf, z = zu) |
 | `i` | INA219-Status + nFAULT/PCNT |
 | `b` | Buzzer-Piep |
 | `t` | DS18B20 lesen |
@@ -47,6 +49,15 @@ Log-Format je Lauf:
 
 Dazu je Richtung eine Zeitreihe (alle 0,5 s):
 `r_ts` bzw. `f_ts` = `pcnt,mA;pcnt,mA;…` (je Sample ein Paar, mit `;` getrennt).
+
+## Ventilansteuerung (Kalibrierung + Position)
+
+Anschläge: **`r` = Kolben-Reverse-Endlage = Ventil AUF (hart)**, **`f` = Kolben-Forward-Endlage = Ventil ZU (Gummidichtung)**.
+
+1. **Kalibrieren (je Ventil):** `k<N>` – fährt f→zu (Dichtung), r→auf (Anschlag), misst den Hub und speichert ihn im NVS (`stroke<N>`).
+2. **Positionieren:** `v<N> <X%>` – fährt erst auf (Referenz 0), dann f bis X % des Hubs.
+   - `v<N> a` = ganz auf, `v<N> z` = ganz zu.
+3. Referenz = `r`-Endlage (hart, ~70 mA). Der Hub liegt typisch bei ~6900 Pulsen.
 
 ## Hinweis
 

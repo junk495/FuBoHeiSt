@@ -6,6 +6,8 @@
 //   o<Wert> Shunt-Widerstand setzen (mOhm), o = anzeigen.
 //   a<N>   Automatik: N× (r→Endlage, f→Endlage), Log in NVS
 //   d      Log aus NVS auslesen
+//   k<N>   Ventil N kalibrieren (Referenzlauf, Hub speichern)
+//   v<N> <0-100>|a|z  Ventil N auf X% schließen (a=auf, z=zu)
 // Ziel: P_touch, P_ges und die Stall-Schwelle am echten HmIP-VDMOT ermitteln.
 
 #include <Arduino.h>
@@ -38,20 +40,31 @@ struct DriveResult {
     int   pcnt    = 0;    // PCNT-Endwert
     bool  stalled = false;// true = Endlage (Stall) erreicht, false = Timeout/Abbruch
     float stallMa = 0.0f; // Strom bei Stall-Erkennung
+    bool  targetReached = false; // true = Ziel-Pulse erreicht
 };
 
 const unsigned long calTimeoutMs = 60000;  // Automatik: großzügiger Timeout (Ventil belastet)
 
+// Ventil-Anschläge: r = Kolben-Reverse-Endlage = Ventil AUF (hart),
+//                  f = Kolben-Forward-Endlage = Ventil ZU (Gummidichtung).
+const float OPEN_STALL_MA  = 60.0f;   // r-Endlage (hart): Ventil AUF
+const float CLOSE_STALL_MA = 50.0f;   // f-Endlage (Dichtung): Ventil ZU
+
 // Automatik-Modus: Anzahl Durchläufe, die nach dem Boot ohne Serieleingabe
 // automatisch starten (für den Betrieb am Ventil ohne Monitor).
 // 0 = deaktiviert (nur manuell über den Befehl a<N>). Für den Ventillauf z. B. auf 5 setzen.
-#define AUTO_RUN_COUNT 0
-#define AUTO_RUN_WAIT_S 10
+#define AUTO_RUN_COUNT 5
+#define AUTO_RUN_WAIT_S 20
 
 void printHelp();
 void printStatus();
 DriveResult runMove(MotorState dir, const char* name, bool verbose = true, unsigned long timeoutMs = moveTimeoutMs, String* seriesOut = nullptr);
 void runStandard(int runs);
+DriveResult drive(MotorState dir, unsigned long timeoutMs, float stallMa, int32_t targetPulses, bool verbose, String* seriesOut);
+bool valveCalibrate(uint8_t channel);
+bool valveOpen(uint8_t channel);
+bool valveClose(uint8_t channel);
+bool valveMoveTo(uint8_t channel, uint8_t percent);
 void readLog();
 void beep();
 void readTemp();
@@ -149,6 +162,38 @@ void loop() {
             break;
         }
         case 'd': readLog(); break;
+        case 'k': {
+            const int ch = line.substring(1).toInt();
+            if (ch >= 1 && ch <= Pin::MOTOR_COUNT) {
+                valveCalibrate(ch - 1);
+            } else {
+                Serial.printf("Ungültiger Kanal (1..%d)\n", Pin::MOTOR_COUNT);
+            }
+            break;
+        }
+        case 'v': {
+            const String rest = line.substring(1);
+            const int sp = rest.indexOf(' ');
+            if (sp < 0) {
+                Serial.println(F("Nutzung: v<N> <0-100>|a|z"));
+                break;
+            }
+            const int ch = rest.substring(0, sp).toInt();
+            String arg = rest.substring(sp + 1);
+            arg.trim();
+            if (ch < 1 || ch > Pin::MOTOR_COUNT) {
+                Serial.printf("Ungültiger Kanal (1..%d)\n", Pin::MOTOR_COUNT);
+            } else if (arg == "a") {
+                valveOpen(ch - 1);
+            } else if (arg == "z") {
+                valveClose(ch - 1);
+            } else {
+                const int pct = arg.toInt();
+                if (pct >= 0 && pct <= 100) valveMoveTo(ch - 1, pct);
+                else Serial.println(F("Prozent 0..100 (oder a/z)"));
+            }
+            break;
+        }
         case 'i': printStatus(); break;
         case 'b': beep(); break;
         case 't': readTemp(); break;
@@ -157,7 +202,10 @@ void loop() {
     }
 }
 
-DriveResult runMove(MotorState dir, const char* name, bool verbose, unsigned long timeoutMs, String* seriesOut) {
+// Kern-Fahrt: bis Stall, Ziel-Pulsen, Timeout oder Abbruch.
+// targetPulses < 0 = kein Ziel (nur Stall/Timeout).
+DriveResult drive(MotorState dir, unsigned long timeoutMs, float stallMa,
+                  int32_t targetPulses, bool verbose, String* seriesOut) {
     DriveResult result;
 
     if (motor.fault()) {
@@ -176,9 +224,6 @@ DriveResult runMove(MotorState dir, const char* name, bool verbose, unsigned lon
     unsigned long stallSince = 0;
     unsigned long lastDriveMs = start;   // letzter Ansteuer-Versuch (für Start-Watchdog)
     int          startRetries = 0;
-
-    if (verbose) Serial.printf("Fahre Kanal %d %s … (Abbruch: Taste | Timeout %lu ms | Stall > %.0f mA)\n",
-                               currentChannel + 1, name, timeoutMs, stallThresholdMa);
 
     while (true) {
         const unsigned long now = millis();
@@ -199,6 +244,13 @@ DriveResult runMove(MotorState dir, const char* name, bool verbose, unsigned lon
             const bool fresh = sense.read();
             const int16_t pulses = ripple.count();
 
+            // Ziel-Pulse erreicht?
+            if (targetPulses >= 0 && pulses >= targetPulses) {
+                result.targetReached = true;
+                if (verbose) Serial.printf("ZIEL: PCNT %d >= %d\n", pulses, targetPulses);
+                break;
+            }
+
             if (fresh) {
                 const float ma = sense.currentMilliamps();
 
@@ -206,14 +258,14 @@ DriveResult runMove(MotorState dir, const char* name, bool verbose, unsigned lon
                 // kurzfristig über der Schwelle liegen und würde sonst einen
                 // Falsch-Stall auslösen.
                 if (now - start >= stallBlankMs) {
-                    if (ma > stallThresholdMa) {
+                    if (ma > stallMa) {
                         if (stallSince == 0) {
                             stallSince = now;
                         } else if (now - stallSince >= stallDebounceMs) {
                             result.stalled = true;
                             result.stallMa = ma;
                             if (verbose) Serial.printf("STALL: %.1f mA > %.0f mA (entprellt %lu ms)\n",
-                                                       ma, stallThresholdMa, stallDebounceMs);
+                                                       ma, stallMa, stallDebounceMs);
                             break;
                         }
                     } else {
@@ -258,8 +310,101 @@ DriveResult runMove(MotorState dir, const char* name, bool verbose, unsigned lon
     motor.disable();              // nSLEEP LOW löscht auch ein gelatchtes nFAULT
     delay(100);
     result.pcnt = ripple.count();
-    if (verbose) Serial.printf("Ende: PCNT=%d\n", result.pcnt);
     return result;
+}
+
+// Manuelle Einzelfahrt (Befehl f/r): nutzt die globale Stall-Schwelle.
+DriveResult runMove(MotorState dir, const char* name, bool verbose, unsigned long timeoutMs, String* seriesOut) {
+    if (verbose) Serial.printf("Fahre Kanal %d %s … (Abbruch: Taste | Timeout %lu ms | Stall > %.0f mA)\n",
+                               currentChannel + 1, name, timeoutMs, stallThresholdMa);
+    DriveResult res = drive(dir, timeoutMs, stallThresholdMa, -1, verbose, seriesOut);
+    if (verbose) Serial.printf("Ende: PCNT=%d\n", res.pcnt);
+    return res;
+}
+
+// ---------- Ventilansteuerung ----------
+
+// Kalibrierten Hub (Pulse) für Kanal lesen. 0 = nicht kalibriert.
+int32_t valveStroke(uint8_t channel) {
+    Preferences prefs;
+    prefs.begin("motorlog", true);
+    const int32_t stroke = prefs.getInt(("stroke" + String(channel)).c_str(), 0);
+    prefs.end();
+    return stroke;
+}
+
+// Referenzlauf für Kanal: f→zu (Dichtung), r→auf (Anschlag), Hub messen + speichern.
+bool valveCalibrate(uint8_t channel) {
+    currentChannel = channel;
+
+    Serial.printf("Kalibriere Kanal %d: f→zu (Dichtung) …\n", channel + 1);
+    DriveResult zu = drive(MotorState::Forward, calTimeoutMs, CLOSE_STALL_MA, -1, true, nullptr);
+    delay(500);
+
+    Serial.printf("Kalibriere Kanal %d: r→auf (Anschlag) …\n", channel + 1);
+    DriveResult auf = drive(MotorState::Reverse, calTimeoutMs, OPEN_STALL_MA, -1, true, nullptr);
+
+    if (!zu.stalled || !auf.stalled) {
+        Serial.println(F("Kalibrierung fehlgeschlagen (Endlage nicht erreicht)."));
+        return false;
+    }
+
+    const int32_t stroke = auf.pcnt;   // Hub = Weg von "zu" bis "auf"
+    if (stroke <= 0) {
+        Serial.println(F("Kalibrierung fehlgeschlagen (Hub <= 0)."));
+        return false;
+    }
+
+    Preferences prefs;
+    prefs.begin("motorlog", false);
+    prefs.putInt(("stroke" + String(channel)).c_str(), stroke);
+    prefs.end();
+
+    Serial.printf("Kanal %d kalibriert: Hub = %d Pulse (auf = 0, zu = %d).\n", channel + 1, stroke, stroke);
+    return true;
+}
+
+// Ventil ganz öffnen (r bis Anschlag).
+bool valveOpen(uint8_t channel) {
+    currentChannel = channel;
+    Serial.printf("Kanal %d: r→auf (Anschlag) …\n", channel + 1);
+    DriveResult r = drive(MotorState::Reverse, calTimeoutMs, OPEN_STALL_MA, -1, true, nullptr);
+    return r.stalled;
+}
+
+// Ventil ganz schließen (f bis Dichtung).
+bool valveClose(uint8_t channel) {
+    currentChannel = channel;
+    Serial.printf("Kanal %d: f→zu (Dichtung) …\n", channel + 1);
+    DriveResult r = drive(MotorState::Forward, calTimeoutMs, CLOSE_STALL_MA, -1, true, nullptr);
+    return r.stalled;
+}
+
+// Ventil auf X % schließen (0 = auf, 100 = zu).
+bool valveMoveTo(uint8_t channel, uint8_t percent) {
+    currentChannel = channel;
+
+    if (percent == 0) return valveOpen(channel);
+    if (percent >= 100) return valveClose(channel);
+
+    const int32_t stroke = valveStroke(channel);
+    if (stroke <= 0) {
+        Serial.printf("Kanal %d nicht kalibriert – bitte k<%d> ausführen.\n", channel + 1, channel + 1);
+        return false;
+    }
+
+    const int32_t target = (int32_t)stroke * percent / 100;
+
+    // Erst auf (Referenz 0), dann f bis Ziel.
+    if (!valveOpen(channel)) {
+        Serial.println(F("Fehler: auf-Referenz nicht erreicht."));
+        return false;
+    }
+    delay(500);
+
+    Serial.printf("Kanal %d: f→%d %% (%d Pulse) …\n", channel + 1, percent, target);
+    DriveResult move = drive(MotorState::Forward, calTimeoutMs, CLOSE_STALL_MA, target, true, nullptr);
+    return move.targetReached || move.stalled;
 }
 
 void runStandard(int runs) {
@@ -364,6 +509,8 @@ void printHelp() {
     Serial.println(F("  o<Wert> Shunt-Widerstand setzen (mOhm), o = anzeigen"));
     Serial.println(F("  a<N>   Automatik: N× (r→Endlage, f→Endlage), Log in NVS"));
     Serial.println(F("  d      Log aus NVS auslesen"));
+    Serial.println(F("  k<N>   Ventil N kalibrieren (Referenzlauf, Hub speichern)"));
+    Serial.println(F("  v<N> <0-100>|a|z  Ventil N auf X% schließen (a=auf, z=zu)"));
     Serial.println(F("  i      INA219-Status + nFAULT/PCNT"));
     Serial.println(F("  b      Buzzer-Piep"));
     Serial.println(F("  t      DS18B20 lesen"));
