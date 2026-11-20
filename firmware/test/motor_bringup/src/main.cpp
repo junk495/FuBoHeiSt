@@ -53,7 +53,7 @@ const float CLOSE_STALL_MA = 50.0f;   // f-Endlage (Dichtung): Ventil ZU
 // Automatik-Modus: Anzahl Durchläufe, die nach dem Boot ohne Serieleingabe
 // automatisch starten (für den Betrieb am Ventil ohne Monitor).
 // 0 = deaktiviert (nur manuell über den Befehl a<N>). Für den Ventillauf z. B. auf 5 setzen.
-#define AUTO_RUN_COUNT 5
+#define AUTO_RUN_COUNT 0
 #define AUTO_RUN_WAIT_S 20
 
 void printHelp();
