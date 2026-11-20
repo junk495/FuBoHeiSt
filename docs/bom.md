@@ -28,7 +28,7 @@ Stand: vor Schaltplan. Vollständige Liste aller PCB-Bauteile mit Mengen.
 |---|---|---|
 | 1 kΩ | 5 | R1, R2, R5 + 2× AO3400A-Gate-Vorwiderstand |
 | 10 kΩ | 6 | R4, R8 (LM393-Pullup), R9 (nSLEEP), R21 (nFAULT) + 2× AO3400A-GS-Pulldown |
-| 22 kΩ | 1 | R3 (Gain) |
+| 47–50 kΩ | 1 | R3 (Gain – nach Kalibrierung) |
 | 100 kΩ | 1 | R6 (Rbias, Slicer-Offset – nach Kalibrierung) |
 | 4,7 kΩ | 3 | 2× I²C-Pullup + 1-Wire-Pullup |
 | 470 kΩ | 1 | Rhyst (Hysterese) |

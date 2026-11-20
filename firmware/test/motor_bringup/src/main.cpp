@@ -27,6 +27,9 @@ const unsigned long stallDebounceMs = 100;
 const unsigned long stallBlankMs     = 400;   // Blindzeit: Anlaufstrom (Inrush) ignorieren
 const unsigned long sampleIntervalMs = 10;   // Abtastung für die Stall-Erkennung
 const unsigned long printIntervalMs  = 500;  // Monitor-Ausgabe (nicht jeden Sample)
+const unsigned long startWatchdogMs  = 1000; // Start-Watchdog: ohne Lauf nach dieser Zeit → Retry
+const float        startWatchdogMa   = 10.0f;// unter diesem Strom gilt der Motor als "nicht gelaufen"
+const int          maxStartRetries   = 3;    // maximale Ansteuer-Versuche
 
 void printHelp();
 void printStatus();
@@ -127,6 +130,8 @@ void runMove(MotorState dir, const char* name) {
     unsigned long lastSample = 0;
     unsigned long lastPrint  = 0;
     unsigned long stallSince = 0;
+    unsigned long lastDriveMs = start;   // letzter Ansteuer-Versuch (für Start-Watchdog)
+    int          startRetries = 0;
 
     Serial.printf("Fahre Kanal %d %s … (Abbruch: Taste | Timeout %lu ms | Stall > %.0f mA)\n",
                   currentChannel + 1, name, moveTimeoutMs, stallThresholdMa);
@@ -168,6 +173,23 @@ void runMove(MotorState dir, const char* name) {
                     } else {
                         stallSince = 0;
                     }
+                }
+
+                // Start-Watchdog: Läuft der Motor nicht an (Strom bleibt unter der Schwelle)?
+                if (startRetries < maxStartRetries &&
+                    now - lastDriveMs >= startWatchdogMs &&
+                    ma < startWatchdogMa) {
+                    Serial.printf("  Start-Watchdog: Motor läuft nicht (I=%.1f mA) → Retry %d/%d\n",
+                                  ma, startRetries + 1, maxStartRetries);
+                    motor.disable();
+                    delay(50);
+                    motor.enable();
+                    delay(2);
+                    motor.set(currentChannel, dir);
+                    lastDriveMs = now;
+                    startRetries++;
+                    stallSince = 0;
+                    continue;
                 }
 
                 // Nur alle printIntervalMs ausgeben – die Stall-Erkennung läuft
