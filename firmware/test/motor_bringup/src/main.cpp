@@ -4,6 +4,8 @@
 //   i     INA219-Status,        b = Buzzer-Piep, t = DS18B20,  h = Hilfe.
 //   m<Wert> Stall-Schwelle setzen (mA), m = anzeigen.
 //   o<Wert> Shunt-Widerstand setzen (mOhm), o = anzeigen.
+//   a<N>   Automatik: N× (r→Endlage, f→Endlage), Log in NVS
+//   d      Log aus NVS auslesen
 // Ziel: P_touch, P_ges und die Stall-Schwelle am echten HmIP-VDMOT ermitteln.
 
 #include <Arduino.h>
@@ -13,6 +15,7 @@
 #include "RippleCounter.h"
 #include <OneWire.h>
 #include <DallasTemperature.h>
+#include <Preferences.h>
 
 MotorDriver motor;
 CurrentSense sense;
@@ -21,7 +24,7 @@ OneWire oneWire(Pin::ONEWIRE);
 DallasTemperature dallas(&oneWire);
 
 uint8_t currentChannel = 0;              // 0 = Kanal 1 (Zone 1)
-float stallThresholdMa = 60.0f;          // Lauf ~17 mA, Endlage (blockiert) ~70–120 mA → Mitte; per m<Wert> nachjustierbar
+float stallThresholdMa = 50.0f;          // Lauf ~17 mA, r-Endlage ~79 mA, f-Endlage (Dichtung) ~61 mA → 50 mA
 const unsigned long moveTimeoutMs   = 15000;
 const unsigned long stallDebounceMs = 100;
 const unsigned long stallBlankMs     = 400;   // Blindzeit: Anlaufstrom (Inrush) ignorieren
@@ -31,9 +34,25 @@ const unsigned long startWatchdogMs  = 1000; // Start-Watchdog: ohne Lauf nach d
 const float        startWatchdogMa   = 10.0f;// unter diesem Strom gilt der Motor als "nicht gelaufen"
 const int          maxStartRetries   = 3;    // maximale Ansteuer-Versuche
 
+struct DriveResult {
+    int   pcnt    = 0;    // PCNT-Endwert
+    bool  stalled = false;// true = Endlage (Stall) erreicht, false = Timeout/Abbruch
+    float stallMa = 0.0f; // Strom bei Stall-Erkennung
+};
+
+const unsigned long calTimeoutMs = 60000;  // Automatik: großzügiger Timeout (Ventil belastet)
+
+// Automatik-Modus: Anzahl Durchläufe, die nach dem Boot ohne Serieleingabe
+// automatisch starten (für den Betrieb am Ventil ohne Monitor).
+// 0 = deaktiviert (nur manuell über den Befehl a<N>). Für den Ventillauf z. B. auf 5 setzen.
+#define AUTO_RUN_COUNT 0
+#define AUTO_RUN_WAIT_S 10
+
 void printHelp();
 void printStatus();
-void runMove(MotorState dir, const char* name);
+DriveResult runMove(MotorState dir, const char* name, bool verbose = true, unsigned long timeoutMs = moveTimeoutMs, String* seriesOut = nullptr);
+void runStandard(int runs);
+void readLog();
 void beep();
 void readTemp();
 
@@ -52,6 +71,19 @@ void setup() {
         Serial.println(F("WARNUNG: INA219 (0x40) nicht gefunden - Strommessung/Stall-Erkennung unbrauchbar."));
     }
     printHelp();
+
+#if AUTO_RUN_COUNT > 0
+    // Betrieb am Ventil ohne Monitor: nach kurzer Wartezeit automatisch starten.
+    // Jede Serieleingabe in dieser Zeit bricht ab (Eingabe bleibt im Puffer).
+    Serial.printf("\nAutomatik-Modus: %d Durchläufe in %d s – Eingabe bricht ab.\n", AUTO_RUN_COUNT, AUTO_RUN_WAIT_S);
+    unsigned long _t0 = millis();
+    bool _auto = true;
+    while (millis() - _t0 < AUTO_RUN_WAIT_S * 1000UL) {
+        if (Serial.available()) { _auto = false; break; }
+        delay(10);
+    }
+    if (_auto) runStandard(AUTO_RUN_COUNT);
+#endif
 }
 
 void loop() {
@@ -107,6 +139,16 @@ void loop() {
             }
             break;
         }
+        case 'a': {
+            const int runs = (line.length() > 1) ? line.substring(1).toInt() : 3;
+            if (runs >= 1 && runs <= 10) {
+                runStandard(runs);
+            } else {
+                Serial.println(F("Ungültige Anzahl (1..10)"));
+            }
+            break;
+        }
+        case 'd': readLog(); break;
         case 'i': printStatus(); break;
         case 'b': beep(); break;
         case 't': readTemp(); break;
@@ -115,10 +157,12 @@ void loop() {
     }
 }
 
-void runMove(MotorState dir, const char* name) {
+DriveResult runMove(MotorState dir, const char* name, bool verbose, unsigned long timeoutMs, String* seriesOut) {
+    DriveResult result;
+
     if (motor.fault()) {
-        Serial.println(F("FEHLER: nFAULT aktiv (Übertemperatur/Überstrom)!"));
-        return;
+        if (verbose) Serial.println(F("FEHLER: nFAULT aktiv (Übertemperatur/Überstrom)!"));
+        return result;
     }
 
     motor.enable();
@@ -133,20 +177,20 @@ void runMove(MotorState dir, const char* name) {
     unsigned long lastDriveMs = start;   // letzter Ansteuer-Versuch (für Start-Watchdog)
     int          startRetries = 0;
 
-    Serial.printf("Fahre Kanal %d %s … (Abbruch: Taste | Timeout %lu ms | Stall > %.0f mA)\n",
-                  currentChannel + 1, name, moveTimeoutMs, stallThresholdMa);
+    if (verbose) Serial.printf("Fahre Kanal %d %s … (Abbruch: Taste | Timeout %lu ms | Stall > %.0f mA)\n",
+                               currentChannel + 1, name, timeoutMs, stallThresholdMa);
 
     while (true) {
         const unsigned long now = millis();
 
         if (Serial.available()) {              // manueller Abbruch
             Serial.read();                     // nur das Abbruch-Zeichen verbrauchen, Folge-Kommandos bleiben im Puffer
-            Serial.println(F("Abbruch durch Tastendruck"));
+            if (verbose) Serial.println(F("Abbruch durch Tastendruck"));
             break;
         }
-        if (now - start >= moveTimeoutMs) { Serial.println(F("Timeout")); break; }
+        if (now - start >= timeoutMs) { if (verbose) Serial.println(F("Timeout")); break; }
         if (motor.fault()) {
-            Serial.println(F("nFAULT aktiv (OCP/Übertemperatur/UVLO - Ladungspumpe/VM prüfen)"));
+            if (verbose) Serial.println(F("nFAULT aktiv (OCP/Übertemperatur/UVLO - Ladungspumpe/VM prüfen)"));
             break;
         }
 
@@ -159,15 +203,17 @@ void runMove(MotorState dir, const char* name) {
                 const float ma = sense.currentMilliamps();
 
                 // Stall-Erkennung erst nach der Blindzeit: Der Anlaufstrom kann
-                // kurzfristig über der Schwelle liegen (laut Doku 180–250 mA) und
-                // würde sonst einen Falsch-Stall auslösen → unterschiedliche Ergebnisse.
+                // kurzfristig über der Schwelle liegen und würde sonst einen
+                // Falsch-Stall auslösen.
                 if (now - start >= stallBlankMs) {
                     if (ma > stallThresholdMa) {
                         if (stallSince == 0) {
                             stallSince = now;
                         } else if (now - stallSince >= stallDebounceMs) {
-                            Serial.printf("STALL: %.1f mA > %.0f mA (entprellt %lu ms)\n",
-                                          ma, stallThresholdMa, stallDebounceMs);
+                            result.stalled = true;
+                            result.stallMa = ma;
+                            if (verbose) Serial.printf("STALL: %.1f mA > %.0f mA (entprellt %lu ms)\n",
+                                                       ma, stallThresholdMa, stallDebounceMs);
                             break;
                         }
                     } else {
@@ -179,8 +225,8 @@ void runMove(MotorState dir, const char* name) {
                 if (startRetries < maxStartRetries &&
                     now - lastDriveMs >= startWatchdogMs &&
                     ma < startWatchdogMa) {
-                    Serial.printf("  Start-Watchdog: Motor läuft nicht (I=%.1f mA) → Retry %d/%d\n",
-                                  ma, startRetries + 1, maxStartRetries);
+                    if (verbose) Serial.printf("  Start-Watchdog: Motor läuft nicht (I=%.1f mA) → Retry %d/%d\n",
+                                               ma, startRetries + 1, maxStartRetries);
                     motor.disable();
                     delay(50);
                     motor.enable();
@@ -192,16 +238,18 @@ void runMove(MotorState dir, const char* name) {
                     continue;
                 }
 
-                // Nur alle printIntervalMs ausgeben – die Stall-Erkennung läuft
-                // trotzdem weiter mit sampleIntervalMs (10 ms).
+                // Alle printIntervalMs (0,5 s) protokollieren/ausgeben –
+                // die Stall-Erkennung läuft weiter mit sampleIntervalMs (10 ms).
                 if (now - lastPrint >= printIntervalMs) {
                     lastPrint = now;
-                    Serial.printf("  t=%lu ms | I=%6.1f mA | PCNT=%6d\n", now - start, ma, pulses);
+                    if (verbose) Serial.printf("  t=%lu ms | I=%6.1f mA | PCNT=%6d\n", now - start, ma, pulses);
+                    if (seriesOut) *seriesOut += String(pulses) + "," + String(ma, 1) + ";";
                 }
             } else if (now - lastPrint >= printIntervalMs) {
                 // Kein frischer Messwert – nicht mit veralteten Werten entscheiden.
                 lastPrint = now;
-                Serial.printf("  t=%lu ms | INA219 n/a | PCNT=%6d\n", now - start, pulses);
+                if (verbose) Serial.printf("  t=%lu ms | INA219 n/a | PCNT=%6d\n", now - start, pulses);
+                if (seriesOut) *seriesOut += String(pulses) + ",-1;";
             }
         }
     }
@@ -209,7 +257,67 @@ void runMove(MotorState dir, const char* name) {
     motor.brake(currentChannel);
     motor.disable();              // nSLEEP LOW löscht auch ein gelatchtes nFAULT
     delay(100);
-    Serial.printf("Ende: PCNT=%d\n", ripple.count());
+    result.pcnt = ripple.count();
+    if (verbose) Serial.printf("Ende: PCNT=%d\n", result.pcnt);
+    return result;
+}
+
+void runStandard(int runs) {
+    Preferences prefs;
+    prefs.begin("motorlog", false);
+    // alte Einträge löschen
+    for (int i = 1; i <= 10; i++) {
+        prefs.remove(("run" + String(i)).c_str());
+        prefs.remove(("r" + String(i)).c_str());
+        prefs.remove(("f" + String(i)).c_str());
+    }
+    prefs.putInt("count", 0);
+
+    Serial.printf("Starte Automatik: %d Durchläufe (r → Endlage, f → Endlage)\n", runs);
+
+    for (int i = 1; i <= runs; i++) {
+        Serial.printf("\n--- Durchlauf %d/%d ---\n", i, runs);
+
+        String rSeries, fSeries;
+        DriveResult r = runMove(MotorState::Reverse, "rückwärts", false, calTimeoutMs, &rSeries);
+        delay(500);
+        DriveResult f = runMove(MotorState::Forward, "vorwärts", false, calTimeoutMs, &fSeries);
+        delay(500);
+
+        String s = "r_pcnt:" + String(r.pcnt) +
+                   " r_stall:" + String(r.stalled) +
+                   " r_ma:" + String(r.stallMa, 1) +
+                   " f_pcnt:" + String(f.pcnt) +
+                   " f_stall:" + String(f.stalled) +
+                   " f_ma:" + String(f.stallMa, 1);
+        prefs.putString(("run" + String(i)).c_str(), s);
+        prefs.putString(("r" + String(i)).c_str(), rSeries);
+        prefs.putString(("f" + String(i)).c_str(), fSeries);
+
+        Serial.printf("  Lauf %d: %s\n", i, s.c_str());
+    }
+
+    prefs.putInt("count", runs);
+    prefs.end();
+    Serial.println(F("\nAutomatik beendet, Log im NVS gespeichert."));
+}
+
+void readLog() {
+    Preferences prefs;
+    prefs.begin("motorlog", true);
+    const int count = prefs.getInt("count", 0);
+    Serial.printf("Gespeicherte Durchläufe: %d\n", count);
+    for (int i = 1; i <= count; i++) {
+        String s = prefs.getString(("run" + String(i)).c_str(), "");
+        if (s.length() > 0) {
+            Serial.printf("\nLauf %d: %s\n", i, s.c_str());
+            String r = prefs.getString(("r" + String(i)).c_str(), "");
+            String f = prefs.getString(("f" + String(i)).c_str(), "");
+            Serial.printf("  r_ts (0,5 s; pcnt,mA): %s\n", r.c_str());
+            Serial.printf("  f_ts (0,5 s; pcnt,mA): %s\n", f.c_str());
+        }
+    }
+    prefs.end();
 }
 
 void printStatus() {
@@ -254,6 +362,8 @@ void printHelp() {
     Serial.println(F("  s      Stopp (Brake)"));
     Serial.println(F("  m<Wert> Stall-Schwelle setzen (mA), m = anzeigen"));
     Serial.println(F("  o<Wert> Shunt-Widerstand setzen (mOhm), o = anzeigen"));
+    Serial.println(F("  a<N>   Automatik: N× (r→Endlage, f→Endlage), Log in NVS"));
+    Serial.println(F("  d      Log aus NVS auslesen"));
     Serial.println(F("  i      INA219-Status + nFAULT/PCNT"));
     Serial.println(F("  b      Buzzer-Piep"));
     Serial.println(F("  t      DS18B20 lesen"));

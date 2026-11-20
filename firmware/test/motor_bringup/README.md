@@ -21,13 +21,32 @@ pio device monitor
 | `s` | Stopp (Brake) |
 | `m<Wert>` | Stall-Schwelle setzen (mA), `m` = anzeigen |
 | `o<Wert>` | Shunt-Widerstand setzen (mOhm), `o` = anzeigen |
+| `a<N>` | Automatik: N× (r→Endlage, f→Endlage), Log in NVS |
+| `d` | Log aus NVS auslesen |
 | `i` | INA219-Status + nFAULT/PCNT |
 | `b` | Buzzer-Piep |
 | `t` | DS18B20 lesen |
 | `h` | Hilfe |
 
 Kanal 1 = Zone 1 (IN1=GPIO4, IN2=GPIO5). Ziel: `P_touch`, `P_ges` ermitteln.
-Gemessen: Lauf ~17 mA, Endlage (blockiert) ~70–120 mA → Stall-Schwelle Default 60 mA.
+Gemessen am Ventil: Lauf ~17 mA, r-Endlage (hart) ~79 mA, f-Endlage (Gummidichtung) ~61 mA → Stall-Schwelle Default 50 mA.
+
+## Ventillauf (Automatik, ohne Monitor)
+
+Für den Lauf am Ventil (kein Monitor angeschlossen) gibt es einen Auto-Start:
+
+1. In `src/main.cpp` `#define AUTO_RUN_COUNT 0` → z. B. **5** setzen und flashen.
+2. Board am Ventil einschalten. Nach `AUTO_RUN_WAIT_S` (10 s) startet die Automatik
+   automatisch: je Durchlauf **erst `r` bis Endlage, dann `f` bis Endlage**, und
+   schreibt das Ergebnis in den **NVS** (bleibt über Reboot/Re-Flash erhalten).
+3. Strom aus, zurück an den PC, Monitor öffnen und `d` eingeben (innerhalb der
+   10-s-Wartezeit – jede Eingabe bricht den Auto-Start ab).
+
+Log-Format je Lauf:
+`r_pcnt:<n> r_stall:<0/1> r_ma:<mA> f_pcnt:<n> f_stall:<0/1> f_ma:<mA>`
+
+Dazu je Richtung eine Zeitreihe (alle 0,5 s):
+`r_ts` bzw. `f_ts` = `pcnt,mA;pcnt,mA;…` (je Sample ein Paar, mit `;` getrennt).
 
 ## Hinweis
 
