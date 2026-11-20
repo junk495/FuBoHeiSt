@@ -25,6 +25,8 @@ pio device monitor
 | `d` | Log aus NVS auslesen |
 | `k<N>` | Ventil N kalibrieren (Referenzlauf, Hub speichern) |
 | `v<N> <0-100>\|a\|z` | Ventil N auf X% schließen (a = auf, z = zu) |
+| `K<N>` | **[non-blocking]** Ventil N kalibrieren (Kanal 0..7) |
+| `V<N> [0-100]\|a\|z` | **[non-blocking]** Ventil N fahren (Kanal 0..7) |
 | `i` | INA219-Status + nFAULT/PCNT |
 | `b` | Buzzer-Piep |
 | `t` | DS18B20 lesen |
@@ -62,6 +64,22 @@ Anschläge: **`r` = Kolben-Reverse-Endlage = Ventil AUF (hart)**, **`f` = Kolben
 4. Die Position wird im RAM je Kanal verfolgt. Die Referenz wird **nur neu geholt**,
    wenn sie verloren ist (Boot, Timeout/Abbruch/nFAULT). Ein periodisches
    Neu-Kalibrieren (festes Zeitintervall) folgt später.
+
+## Nicht-blockierende Ventilsteuerung (ValveController)
+
+Zusätzlich zu den blockierenden Befehlen ist das **nicht-blockierende** Modul
+`ValveController` integriert – identisch zum Modul in der Haupt-Firmware. Es wird in
+`loop()` über `valveController.tick()` getrieben (läuft auch ohne Serieleingabe) und
+eignet sich für den späteren Regelkreis.
+
+| Befehl | Funktion |
+|---|---|
+| `K<N>` | [non-blocking] Ventil N kalibrieren (Referenzlauf, Hub speichern) – **Kanal 0..7** |
+| `V<N> [0-100]\|a\|z` | [non-blocking] Ventil N auf X% (a = auf, z = zu) – **Kanal 0..7** |
+| `V<N>` | [non-blocking] Position/Hub/Referenz anzeigen |
+
+Die Kanalnummerierung ist **0-basiert** (wie in der Haupt-Firmware), im Gegensatz zu den
+blockierenden Befehlen `c/k/v` (1-basiert).
 
 ## Hinweis
 

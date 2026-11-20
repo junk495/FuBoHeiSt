@@ -203,6 +203,10 @@ pusht die **Raumtemperaturen** an **ThingSpeak** (Feld 1–6, ein Kanal).
 - **Offline-first bleibt gewahrt:** ThingSpeak ist nur Logging (Entwicklung/Auswertung).
   Fällt das Internet aus, läuft der spätere Regelkreis lokal weiter.
 - Der Motor-Bringup (Stufe 1) liegt als Referenz in `firmware/test/motor_bringup/`.
+- Die **nicht-blockierende Ventilsteuerung** (`ValveController`) ist in `firmware/src`
+  integriert und über das serielle Interface erreichbar (`k<N>`, `v<N>`, `i`, `h`).
+  Die Ventilfahrt hat **Vorrang vor dem BLE-Zyklus** (Scan wird während einer Fahrt pausiert).
+  Ein benutzerfreundlicheres Interface (Web/MQTT) folgt später.
 
 ### Geplante Projektstruktur
 ```

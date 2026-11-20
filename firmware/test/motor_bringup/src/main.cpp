@@ -18,12 +18,14 @@
 #include <OneWire.h>
 #include <DallasTemperature.h>
 #include <Preferences.h>
+#include "ValveController.h"
 
 MotorDriver motor;
 CurrentSense sense;
 RippleCounter ripple;
 OneWire oneWire(Pin::ONEWIRE);
 DallasTemperature dallas(&oneWire);
+ValveController valveController(motor, sense, ripple);
 
 uint8_t currentChannel = 0;              // 0 = Kanal 1 (Zone 1)
 float stallThresholdMa = 50.0f;          // Lauf ~17 mA, r-Endlage ~79 mA, f-Endlage (Dichtung) ~61 mA → 50 mA
@@ -83,6 +85,7 @@ void setup() {
     motor.begin();
     sense.begin();
     ripple.begin();
+    valveController.begin();
     dallas.begin();
 
     Serial.println();
@@ -107,6 +110,16 @@ void setup() {
 }
 
 void loop() {
+    // Nicht-blockierende Ventilsteuerung treiben (läuft auch ohne Serieleingabe).
+    valveController.tick();
+    static bool nvBusyPrev = false;
+    if (nvBusyPrev && !valveController.busy()) {
+        const ValveController::Result r = valveController.result();
+        Serial.printf("[NV] fertig: ok=%d stall=%d ziel=%d pulse=%d\n",
+                      r.ok, r.stalled, r.targetReached, r.pcnt);
+    }
+    nvBusyPrev = valveController.busy();
+
     if (!Serial.available()) return;
 
     String line = Serial.readStringUntil('\n');
@@ -207,6 +220,44 @@ void loop() {
                 const int pct = arg.toInt();
                 if (pct >= 0 && pct <= 100) valveMoveTo(ch - 1, pct);
                 else Serial.println(F("Prozent 0..100 (oder a/z)"));
+            }
+            break;
+        }
+        case 'K': {
+            const int ch = line.substring(1).toInt();
+            if (ch >= 0 && ch <= 7) {
+                if (valveController.calibrate(ch)) Serial.printf("[NV] Kalibriere Ventil %d...\n", ch);
+                else Serial.println(F("[NV] beschaefigt"));
+            } else {
+                Serial.println(F("Kanal 0..7"));
+            }
+            break;
+        }
+        case 'V': {
+            const String rest = line.substring(1);
+            const int sp = rest.indexOf(' ');
+            const int ch = (sp < 0) ? rest.toInt() : rest.substring(0, sp).toInt();
+            const String arg = (sp < 0) ? "" : rest.substring(sp + 1);
+            if (ch < 0 || ch > 7) { Serial.println(F("Kanal 0..7")); break; }
+            if (arg.length() == 0) {
+                Serial.printf("[NV] v%d: pos=%ld/%lu pulse (ref=%c)\n", ch,
+                              (long)valveController.position(ch),
+                              (unsigned long)valveController.stroke(ch),
+                              valveController.hasReference(ch) ? 'j' : 'n');
+            } else if (arg == "a") {
+                if (valveController.open(ch)) Serial.printf("[NV] v%d: auf...\n", ch);
+                else Serial.println(F("[NV] beschaefigt"));
+            } else if (arg == "z") {
+                if (valveController.close(ch)) Serial.printf("[NV] v%d: zu...\n", ch);
+                else Serial.println(F("[NV] beschaefigt"));
+            } else {
+                const int pct = arg.toInt();
+                if (pct >= 0 && pct <= 100) {
+                    if (valveController.moveTo(ch, pct)) Serial.printf("[NV] v%d -> %d %%...\n", ch, pct);
+                    else Serial.println(F("[NV] nicht kalibriert oder beschaefigt"));
+                } else {
+                    Serial.println(F("Prozent 0..100 (oder a/z)"));
+                }
             }
             break;
         }
@@ -567,6 +618,8 @@ void printHelp() {
     Serial.println(F("  d      Log aus NVS auslesen"));
     Serial.println(F("  k<N>   Ventil N kalibrieren (Referenzlauf, Hub speichern)"));
     Serial.println(F("  v<N> <0-100>|a|z  Ventil N auf X% schließen (a=auf, z=zu)"));
+    Serial.println(F("  K<N>   [non-blocking] Ventil N kalibrieren (Kanal 0..7)"));
+    Serial.println(F("  V<N> [0-100|a|z]  [non-blocking] Ventil N fahren (Kanal 0..7)"));
     Serial.println(F("  i      INA219-Status + nFAULT/PCNT"));
     Serial.println(F("  b      Buzzer-Piep"));
     Serial.println(F("  t      DS18B20 lesen"));
