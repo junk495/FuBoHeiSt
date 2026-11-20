@@ -216,11 +216,6 @@ pusht die **Raumtemperaturen** an **ThingSpeak** (Feld 1–6, ein Kanal).
   Die Ventilfahrt hat **Vorrang**: während einer Fahrt wird kein neuer BLE-Zyklus gestartet
   (ein bereits laufender, nicht-blockierender Scan läuft im Hintergrund weiter).
   Ein benutzerfreundlicheres Interface (Web/MQTT) folgt später.
-- **Serielle Konsole:** Die Firmware-Konsole läuft über die **rechte „UART"-Buchse**
-  (CH343P → UART0 = `Serial0`, 115200 Baud). Bei gleichzeitig aktivem WiFi+BLE stört die
-  Funk-Koexistenz die RX der linken USB-Serial/JTAG-Buchse; UART0 ist davon unabhängig.
-  Der Bringup-Test (`firmware/test/motor_bringup/`, ohne WiFi/BLE) läuft weiter über die
-  linke Buchse.
 
 ### Geplante Projektstruktur
 ```

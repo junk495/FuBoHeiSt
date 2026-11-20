@@ -80,9 +80,5 @@
 - **USB-C-Buchsen (2× vorhanden):**
   - **Linke Buchse ("USB"):** Natives USB-Serial-JTAG / USB-OTG direkt über **GPIO19 (D−, Pin 25) / GPIO20 (D+, Pin 26)**.
   - **Rechte Buchse ("UART"):** Läuft über den On-Board **CH343P**-Chip auf **GPIO43 (U0TXD, Pin 43) / GPIO44 (U0RXD, Pin 42)**.
-- **Firmware-Konsole:** Die Logging-Firmware nutzt die **rechte „UART"-Buchse** (CH343P,
-  UART0 = `Serial0`, 115200 Baud). Bei gleichzeitig aktivem WiFi+BLE stört die Funk-Koexistenz
-  die RX der linken USB-Serial/JTAG-Buchse; UART0 ist davon unabhängig. (Der Bringup-Test
-  `firmware/test/motor_bringup/` ohne WiFi/BLE läuft weiter über die linke Buchse.)
 - **JTAG-Pins (GPIO39–42, Pin 36–39):** Als normale Digital-GPIOs frei nutzbar (sofern kein externes JTAG-Debugging über Pins genutzt wird).
 - **RGB-LED (WS2812 an GPIO48, Pin 29):** Ab Werk aktiv verbunden und per `Adafruit_NeoPixel` / `FastLED` (1 Pixel) als Status-LED nutzbar. Daher GPIO48 nicht für empfindliche externe Eingänge (wie 1-Wire) verwenden.
