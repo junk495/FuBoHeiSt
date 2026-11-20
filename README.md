@@ -198,6 +198,8 @@ pusht die **Raumtemperaturen** an **ThingSpeak** (Feld 1–6, ein Kanal).
 
 - WLAN-Zugangsdaten werden **nicht fest kodiert**, sondern beim ersten Start über ein
   **Captive-Portal** (Hotspot „FuBoHeiSt-Setup") eingegeben und im **NVS** gespeichert.
+  Verbindung **und** Portal laufen **nicht-blockierend** in `loop()`, damit die serielle
+  Ventilsteuerung auch **ohne WLAN** sofort bedienbar bleibt.
 - Konfiguration (Fühlerliste, Intervalle) in `firmware/include/config.h`.
 - Secrets (ThingSpeak-Key) in `firmware/include/secrets.h` (gitignored, Vorlage: `secrets.example.h`).
 - **Offline-first bleibt gewahrt:** ThingSpeak ist nur Logging (Entwicklung/Auswertung).

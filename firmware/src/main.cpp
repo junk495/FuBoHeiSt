@@ -43,7 +43,7 @@ void setup() {
     valve.begin();
     Serial.println(F("Ventilsteuerung bereit (h = Hilfe)."));
 
-    WifiConfig::begin();   // WLAN verbinden oder Captive-Portal (blockiert)
+    WifiConfig::begin();   // WLAN verbinden oder Captive-Portal (nicht-blockierend)
     BleSensors::begin();   // BLE-Scanner vorbereiten
 
     Serial.println(F("Starte Messzyklus.\n"));
@@ -62,8 +62,10 @@ void loop() {
         }
     }
 
-    // 2. Ventil-Zustandsmaschine treiben
+    // 2. Ventil-Zustandsmaschine + WLAN (beides nicht-blockierend, unabhängig
+    //    vom Messzyklus; Ventil und serielle Befehle funktionieren auch ohne WLAN)
     valve.tick();
+    WifiConfig::tick();
 
     // Abschluss der letzten Ventil-Operation melden
     if (valveBusyPrev && !valve.busy()) {

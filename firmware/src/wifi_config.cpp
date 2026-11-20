@@ -54,35 +54,15 @@ void handleSave() {
     ESP.restart();
 }
 
-bool tryConnect() {
-    const String ssid = prefs.getString("ssid", "");
-    if (ssid.length() == 0) {
-        Serial.println(F("Keine WLAN-Daten gespeichert → Captive-Portal"));
-        return false;
-    }
-    const String pass = prefs.getString("pass", "");
+constexpr uint32_t kConnectTimeoutMs = 20000;
 
-    Serial.printf("Verbinde mit \"%s\" …\n", ssid.c_str());
-    WiFi.mode(WIFI_STA);
-    WiFi.begin(ssid.c_str(), pass.c_str());
+enum class State { Connecting, Connected, Portal };
 
-    const uint32_t start = millis();
-    while (WiFi.status() != WL_CONNECTED && millis() - start < 20000) {
-        delay(250);
-        Serial.print('.');
-    }
-    Serial.println();
+State    sState = State::Connecting;
+uint32_t sConnectStart = 0;
+uint32_t sLastDot = 0;
 
-    if (WiFi.status() == WL_CONNECTED) {
-        Serial.printf("Verbunden, IP: %s\n", WiFi.localIP().toString().c_str());
-        return true;
-    }
-    Serial.println(F("Verbindung fehlgeschlagen → Captive-Portal"));
-    WiFi.disconnect(true);
-    return false;
-}
-
-void runPortal() {
+void startPortal() {
     Serial.println(F("Starte Hotspot \"FuBoHeiSt-Setup\" …"));
     WiFi.mode(WIFI_AP);
     WiFi.softAP(kApSsid);
@@ -96,11 +76,7 @@ void runPortal() {
     Serial.printf("Mit WLAN \"%s\" verbinden (IP %s) und Seite öffnen.\n",
                   kApSsid, WiFi.softAPIP().toString().c_str());
 
-    while (true) {  // läuft bis ESP.restart() nach dem Speichern
-        dns.processNextRequest();
-        server.handleClient();
-        delay(10);
-    }
+    sState = State::Portal;
 }
 
 }  // namespace
@@ -108,9 +84,55 @@ void runPortal() {
 namespace WifiConfig {
 
 void begin() {
-    prefs.begin(kNvsNamespace, false);  // read-write
-    if (tryConnect()) return;
-    runPortal();
+    prefs.begin(kNvsNamespace, false);  // read-write (Portal speichert später)
+
+    const String ssid = prefs.getString("ssid", "");
+    if (ssid.length() == 0) {
+        Serial.println(F("Keine WLAN-Daten gespeichert → Captive-Portal"));
+        startPortal();
+        return;
+    }
+
+    const String pass = prefs.getString("pass", "");
+    Serial.printf("Verbinde mit \"%s\" …\n", ssid.c_str());
+    WiFi.mode(WIFI_STA);
+    WiFi.begin(ssid.c_str(), pass.c_str());
+
+    sState = State::Connecting;
+    sConnectStart = millis();
+    sLastDot = millis();
+}
+
+void tick() {
+    switch (sState) {
+        case State::Connecting:
+            if (WiFi.status() == WL_CONNECTED) {
+                Serial.println();
+                Serial.printf("Verbunden, IP: %s\n", WiFi.localIP().toString().c_str());
+                sState = State::Connected;
+            } else if (millis() - sConnectStart >= kConnectTimeoutMs) {
+                Serial.println();
+                Serial.println(F("Verbindung fehlgeschlagen → Captive-Portal"));
+                WiFi.disconnect(true);
+                startPortal();
+            } else if (millis() - sLastDot >= 250) {
+                Serial.print('.');
+                sLastDot = millis();
+            }
+            break;
+
+        case State::Connected:
+            break;
+
+        case State::Portal:
+            dns.processNextRequest();
+            server.handleClient();
+            break;
+    }
+}
+
+bool connected() {
+    return sState == State::Connected && WiFi.status() == WL_CONNECTED;
 }
 
 }  // namespace WifiConfig
