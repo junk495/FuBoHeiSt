@@ -82,13 +82,13 @@ uint8_t  sFailCount = 0;
 void onWifiEvent(WiFiEvent_t event) {
     switch (event) {
         case ARDUINO_EVENT_WIFI_STA_CONNECTED:
-            Serial.println(F("[WLAN] STA verbunden – warte auf IP."));
+            Serial0.println(F("[WLAN] STA verbunden – warte auf IP."));
             break;
         case ARDUINO_EVENT_WIFI_STA_DISCONNECTED:
-            Serial.println(F("[WLAN] STA getrennt."));
+            Serial0.println(F("[WLAN] STA getrennt."));
             break;
         case ARDUINO_EVENT_WIFI_STA_GOT_IP:
-            Serial.printf("[WLAN] IP: %s\n", WiFi.localIP().toString().c_str());
+            Serial0.printf("[WLAN] IP: %s\n", WiFi.localIP().toString().c_str());
             break;
         default:
             break;
@@ -96,7 +96,7 @@ void onWifiEvent(WiFiEvent_t event) {
 }
 
 void printConnected() {
-    Serial.printf("Verbunden, IP: %s, RSSI: %d dBm\n",
+    Serial0.printf("Verbunden, IP: %s, RSSI: %d dBm\n",
                   WiFi.localIP().toString().c_str(), WiFi.RSSI());
 }
 
@@ -104,11 +104,11 @@ void startReconnect() {
     sState = State::Reconnecting;
     sStateStart = millis();
     sReconnectDelayMs = kReconnectBaseMs;
-    Serial.println(F("→ Reconnect-Modus."));
+    Serial0.println(F("→ Reconnect-Modus."));
 }
 
 void startPortal() {
-    Serial.println(F("Starte Hotspot \"FuBoHeiSt-Setup\" …"));
+    Serial0.println(F("Starte Hotspot \"FuBoHeiSt-Setup\" …"));
     WiFi.disconnect(true);
     WiFi.mode(WIFI_AP);
     WiFi.softAP(kApSsid);
@@ -119,7 +119,7 @@ void startPortal() {
     server.onNotFound(handleRoot);
     server.begin();
 
-    Serial.printf("Mit WLAN \"%s\" verbinden (IP %s) und Seite öffnen.\n",
+    Serial0.printf("Mit WLAN \"%s\" verbinden (IP %s) und Seite öffnen.\n",
                   kApSsid, WiFi.softAPIP().toString().c_str());
 
     sState = State::Portal;
@@ -156,12 +156,12 @@ void begin() {
     WiFi.onEvent(onWifiEvent, ARDUINO_EVENT_WIFI_STA_GOT_IP);
 
     if (sSavedSsid.length() == 0) {
-        Serial.println(F("Keine WLAN-Daten gespeichert → Captive-Portal"));
+        Serial0.println(F("Keine WLAN-Daten gespeichert → Captive-Portal"));
         startPortal();
         return;
     }
 
-    Serial.printf("Verbinde mit \"%s\" …\n", sSavedSsid.c_str());
+    Serial0.printf("Verbinde mit \"%s\" …\n", sSavedSsid.c_str());
     WiFi.mode(WIFI_STA);
     WiFi.begin(sSavedSsid.c_str(), sSavedPass.c_str());
 
@@ -174,28 +174,28 @@ void tick() {
     switch (sState) {
         case State::Connecting:
             if (WiFi.status() == WL_CONNECTED) {
-                Serial.println();
+                Serial0.println();
                 printConnected();
                 sState = State::Connected;
             } else if (millis() - sStateStart >= kConnectTimeoutMs) {
-                Serial.println();
-                Serial.println(F("Verbindung fehlgeschlagen."));
+                Serial0.println();
+                Serial0.println(F("Verbindung fehlgeschlagen."));
                 sFailCount++;
                 if (sFailCount >= kMaxConnectFails) {
-                    Serial.println(F("Zu viele Fehlversuche → Captive-Portal."));
+                    Serial0.println(F("Zu viele Fehlversuche → Captive-Portal."));
                     startPortal();
                 } else {
                     startReconnect();
                 }
             } else if (millis() - sLastDot >= 250) {
-                Serial.print('.');
+                Serial0.print('.');
                 sLastDot = millis();
             }
             break;
 
         case State::Connected:
             if (WiFi.status() != WL_CONNECTED) {
-                Serial.println(F("WLAN-Verbindung verloren."));
+                Serial0.println(F("WLAN-Verbindung verloren."));
                 sFailCount = 0;
                 startReconnect();
             }
@@ -207,7 +207,7 @@ void tick() {
                 sState = State::Connected;
             } else if (millis() - sStateStart >= sReconnectDelayMs) {
                 sFailCount++;
-                Serial.printf("Reconnect-Versuch %d/%d …\n",
+                Serial0.printf("Reconnect-Versuch %d/%d …\n",
                               sFailCount, kMaxConnectFails);
                 WiFi.disconnect(false);
                 delay(10);
@@ -218,7 +218,7 @@ void tick() {
                     sReconnectDelayMs = kReconnectMaxMs;
                 }
                 if (sFailCount >= kMaxConnectFails) {
-                    Serial.println(F("Zu viele Reconnect-Versuche → Captive-Portal."));
+                    Serial0.println(F("Zu viele Reconnect-Versuche → Captive-Portal."));
                     startPortal();
                 }
             }
@@ -236,23 +236,23 @@ bool connected() {
 }
 
 void printStatus() {
-    Serial.println(F("--- WLAN-Status ---"));
+    Serial0.println(F("--- WLAN-Status ---"));
     if (sSavedSsid.length() == 0) {
-        Serial.println(F("  Gespeicherte SSID: (keine)"));
+        Serial0.println(F("  Gespeicherte SSID: (keine)"));
     } else {
-        Serial.printf("  Gespeicherte SSID: %s\n", sSavedSsid.c_str());
+        Serial0.printf("  Gespeicherte SSID: %s\n", sSavedSsid.c_str());
     }
-    Serial.printf("  Zustand: %s\n", stateName());
+    Serial0.printf("  Zustand: %s\n", stateName());
     if (WiFi.status() == WL_CONNECTED) {
-        Serial.printf("  IP: %s | RSSI: %d dBm\n",
+        Serial0.printf("  IP: %s | RSSI: %d dBm\n",
                       WiFi.localIP().toString().c_str(), WiFi.RSSI());
     } else {
-        Serial.printf("  WLAN-Status-Code: %d\n", static_cast<int>(WiFi.status()));
+        Serial0.printf("  WLAN-Status-Code: %d\n", static_cast<int>(WiFi.status()));
     }
 }
 
 void resetCredentials() {
-    Serial.println(F("Lösche gespeicherte WLAN-Daten und starte neu …"));
+    Serial0.println(F("Lösche gespeicherte WLAN-Daten und starte neu …"));
     prefs.remove("ssid");
     prefs.remove("pass");
     prefs.end();

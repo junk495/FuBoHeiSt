@@ -13,7 +13,7 @@ namespace ThingSpeak {
 
 bool publishTemps(const float temps[], const bool valid[], int count) {
     if (WiFi.status() != WL_CONNECTED) {
-        Serial.println(F("ThingSpeak: kein WLAN"));
+        Serial0.println(F("ThingSpeak: kein WLAN"));
         return false;
     }
 
@@ -30,7 +30,7 @@ bool publishTemps(const float temps[], const bool valid[], int count) {
         any = true;
     }
     if (!any) {
-        Serial.println(F("ThingSpeak: keine gültigen Werte → nichts gesendet"));
+        Serial0.println(F("ThingSpeak: keine gültigen Werte → nichts gesendet"));
         return false;
     }
 
@@ -42,7 +42,7 @@ bool publishTemps(const float temps[], const bool valid[], int count) {
     const String payload = http.getString();
     http.end();
 
-    Serial.printf("ThingSpeak: HTTP %d → %s\n", code, payload.c_str());
+    Serial0.printf("ThingSpeak: HTTP %d → %s\n", code, payload.c_str());
     return code == 200;
 }
 
