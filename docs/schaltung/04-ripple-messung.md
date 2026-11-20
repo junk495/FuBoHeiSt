@@ -13,8 +13,7 @@ ISEN (alle AISEN/BISEN) ─►[R19∥R20 = 0,5 Ω]─► GND
                                     │                              │
                               R2 (1k)→GND, R3 (22k) Feedback      │
                                     │                              ├─► R4 (10k) ─► U8.3 (IN+)
-                                    │                              └─► R5 (1k) ─► U8.2 (IN−) + C2 (10µ)→GND + R6 (22k)→+3V3
-                                    │                                                U8.1 (OUT) ─ R8 (10k)→+3V3, R7 (470k)→U8.3
+R6 (100k)                                    │                                                U8.1 (OUT) ─ R8 (10k)→+3V3, R7 (470k)→U8.3
                                     │                                                              └─► RIPPLE (GPIO38)
 ```
 
@@ -33,7 +32,7 @@ ISEN (alle AISEN/BISEN) ─►[R19∥R20 = 0,5 Ω]─► GND
 | R4 | 10 kΩ | 0805 | — | Slicer „schnell" |
 | R5 | 1 kΩ | 0805 | — | Slicer Mittelwert |
 | C2 | 10 µF | 0805 | — | Slicer Mittelwert (τ ≈ 10 ms) |
-| R6 | 22 kΩ | 0805 | — | Rbias (Offset ~143 mV) |
+| R6 | 100 kΩ | 0805 | — | Rbias (Offset ~33 mV, nach Kalibrierung) |
 | R7 | 470 kΩ | 0805 | — | Rhyst (Hysterese) |
 | R8 | 10 kΩ | 0805 | — | Pullup (Open-Collector) |
 | C17 | 100 nF | 0805 | — | Abblocken U8 (VCC) |
@@ -91,7 +90,7 @@ ISEN (alle AISEN/BISEN) ─►[R19∥R20 = 0,5 Ω]─► GND
 
 ## 7. Hinweise
 
-- Ripple (Oszi an MCP_OUT): vorwärts ~60 mV Spitze, rückwärts 0,4–0,6 V Spitzen. Mit R6=68k (Offset ~48 mV) zählt der Slicer jetzt (PCNT>0).
+- Ripple (Oszi an MCP_OUT): vorwärts glatt, rückwärts stufig (43-mV-Stufen). Mit R6=100 kΩ (Offset ~33 mV) zählt der Slicer in beide Richtungen gleichmäßig (~1930 Pulse/15 s).
 - **Gesamt-Spannungsabfall @ 700 mA Endlage (blockiert):**
   - **DRV8833** (N-Kanal, R_DS(on) ≈ 0,36 Ω): 350 mV (INA219-Shunt) + ~252 mV (DRV8833) + 350 mV (ISEN-Shunt) ≈ **952 mV** → **~2,35 V** am Motor.
   - **DRV8833C** (P-Kanal High-Side, R_DS(on) HS+LS ≈ 1,74 Ω): 350 mV + ~1218 mV + 350 mV ≈ **1,92 V** → **~1,38 V** am Motor.
@@ -100,4 +99,4 @@ ISEN (alle AISEN/BISEN) ─►[R19∥R20 = 0,5 Ω]─► GND
 - **MCP602 Kanal B als Spannungsfolger** (OpAmp); **LM393 Kanal 2 NICHT als Folger** (Komparator würde schwingen) → Eingänge fest, Ausgang NC.
 - Am ISEN fließt der Strom immer positiv Richtung GND → massebezogenes Signal, **kein Bias** nötig.
 - **Gain = 1 + R3/R2 = 23.** vorwärts ~33 mA → ~380 mV, rückwärts ~151 mA → ~1,7 V, Endlage ~700 mA → sättigt.
-- Data Slicer: τ = R5·C2 ≈ 10 ms (schnelles Einschwingen beim Anlauf); Offset ~143 mV über der +69-mV-Hysterese.
+- Data Slicer: τ = R5·C2 ≈ 10 ms (schnelles Einschwingen beim Anlauf); Offset ~33 mV über der +69-mV-Hysterese.
