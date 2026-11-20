@@ -75,25 +75,44 @@ void loop() {
     }
     valveBusyPrev = valve.busy();
 
-    // 3. BLE/ThingSpeak nur, wenn kein Ventil aktiv ist (Ventil hat Priorität)
+    // 3. BLE/ThingSpeak – nicht-blockierend: Der Scan läuft im Hintergrund
+    //    (NimBLE-Task); loop() bleibt währenddessen für WLAN-Reconnect und
+    //    serielle Befehle bedienbar. Ventil hat weiterhin Vorrang.
     static bool firstRun = true;
     static uint32_t lastCycle = 0;
+    static bool scanActive = false;
     const uint32_t now = millis();
 
     if (valve.busy()) {
-        delay(1);   // Ventil aktiv: nur ticken, BLE-Zyklus pausieren
+        delay(1);   // Ventil aktiv: nur ticken, kein neuer Scan-Zyklus
         return;
     }
 
-    if (!firstRun && now - lastCycle < Config::UPDATE_INTERVAL_MS) {
+    if (!scanActive) {
+        if (!firstRun && now - lastCycle < Config::UPDATE_INTERVAL_MS) {
+            delay(10);
+            return;
+        }
+        firstRun = false;
+        lastCycle = now;
+
+        Serial.println(F("--- Scan ---"));
+        if (BleSensors::startScan()) {
+            scanActive = true;
+        } else {
+            Serial.println(F("Scan konnte nicht gestartet werden."));
+        }
+        return;
+    }
+
+    // Scan läuft: nur ticken, Auswertung folgt nach Scan-Ende.
+    if (BleSensors::isScanning()) {
         delay(10);
         return;
     }
-    firstRun = false;
-    lastCycle = now;
 
-    Serial.println(F("--- Scan ---"));
-    BleSensors::scan();
+    // Scan beendet → Ergebnisse auslesen und senden.
+    scanActive = false;
 
     float temps[Config::ROOM_COUNT];
     bool valid[Config::ROOM_COUNT];
@@ -113,11 +132,22 @@ void loop() {
 void processCommand(const String& line) {
     const char c = line[0];
 
+    if (c == 'w') {
+        if (line == "wr") {
+            WifiConfig::resetCredentials();
+        } else {
+            WifiConfig::printStatus();
+        }
+        return;
+    }
+
     if (c == 'h') {
         Serial.println(F("--- Befehle ---"));
         Serial.println(F("  k<N>  Ventil N kalibrieren (Referenzlauf, Hub speichern)"));
         Serial.println(F("  v<N> [0-100|a|z]  Ventil N auf X% (a=auf, z=zu), ohne Arg = Position"));
         Serial.println(F("  i     Status aller Ventile"));
+        Serial.println(F("  w     WLAN-Status"));
+        Serial.println(F("  wr    WLAN-Daten löschen → Portal"));
         Serial.println(F("  h     Hilfe"));
         return;
     }

@@ -14,6 +14,7 @@ float gTemp[Config::ROOM_COUNT];
 bool  gValid[Config::ROOM_COUNT];
 
 NimBLEScan* pScan = nullptr;
+volatile bool sScanActive = false;
 
 int16_t readInt16Le(const uint8_t* p) {
     return static_cast<int16_t>(static_cast<uint16_t>(p[0]) |
@@ -81,6 +82,11 @@ class ScanCallbacks : public NimBLEScanCallbacks {
             gValid[idx] = true;
         }
     }
+
+    // Wird vom NimBLE-Task am Scan-Ende aufgerufen (auch bei stop()).
+    void onScanEnd(const NimBLEScanResults& /*results*/, int /*reason*/) override {
+        sScanActive = false;
+    }
 };
 
 }  // namespace
@@ -99,10 +105,18 @@ void begin() {
     pScan->setDuplicateFilter(0);  // Duplikate sichtbar
 }
 
-void scan() {
-    if (pScan->isScanning()) return;
-    pScan->start(Config::SCAN_WINDOW_MS);
-    while (pScan->isScanning()) delay(20);
+bool startScan() {
+    if (!pScan || sScanActive || pScan->isScanning()) return false;
+    sScanActive = true;
+    if (!pScan->start(Config::SCAN_WINDOW_MS)) {
+        sScanActive = false;
+        return false;
+    }
+    return true;
+}
+
+bool isScanning() {
+    return sScanActive;
 }
 
 bool hasTemp(int roomIndex) {
