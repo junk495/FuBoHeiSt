@@ -26,7 +26,7 @@ bool publishTemps(const float temps[], const bool valid[], int count) {
         url += "&field";
         url += Config::ROOMS[i].field;
         url += "=";
-        url += String(temps[i], 1);  // 1 Nachkommastelle
+        url += String(temps[i], 2);  // 2 Nachkommastellen
         any = true;
     }
     if (!any) {

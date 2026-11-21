@@ -34,7 +34,7 @@
 ## 4. ESP32-S3-Koexistenz (WiFi + BLE)
 
 - Library: **NimBLE-Arduino** (geringer RAM-/Flash-Bedarf als klassisches Bluedroid).
-- **Intervall-Scanning:** alle **60 s** für **10 s** passiv scannen, danach BLE **pausieren**
+- **Intervall-Scanning:** alle **2 min** für **10 s** passiv scannen, danach BLE **pausieren**
   → störungsfreier MQTT/WiFi-Betrieb im restlichen Zeitfenster.
 - **Nicht-blockierend umgesetzt:** Der Scan läuft im NimBLE-Task; die Firmware-`loop()`
   bleibt für WLAN-Reconnect und serielle Befehle bedienbar. Die Antennen-Koexistenz

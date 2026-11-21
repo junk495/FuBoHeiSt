@@ -6,8 +6,12 @@
 
 #include <Arduino.h>
 
+#include <OneWire.h>
+#include <DallasTemperature.h>
+
 #include "ble_sensors.h"
 #include "config.h"
+#include "pins.h"
 #include "thingspeak.h"
 #include "wifi_config.h"
 #include "MotorDriver.h"
@@ -19,6 +23,10 @@ MotorDriver motor;
 CurrentSense sense;
 RippleCounter ripple;
 ValveController valve(motor, sense, ripple);
+
+// Vorlauftemperatur-Fühler (DS18B20, 1-Wire an Pin::ONEWIRE).
+OneWire oneWire(Pin::ONEWIRE);
+DallasTemperature dallas(&oneWire);
 
 // Serielles Kommando-Interface (nicht-blockierend).
 bool   valveBusyPrev = false;
@@ -40,6 +48,7 @@ void setup() {
     sense.begin();
     ripple.begin();
     valve.begin();
+    dallas.begin();   // 1-Wire-Vorlauffühler (DS18B20)
     Serial.println(F("Ventilsteuerung bereit (h = Hilfe)."));
 
     WifiConfig::begin();   // WLAN verbinden oder Captive-Portal (nicht-blockierend)
@@ -120,6 +129,15 @@ void loop() {
         } else {
             Serial.printf("  %-8s (kein Wert)\n", Config::ROOMS[i].zone);
         }
+    }
+
+    // Vorlauftemperatur (DS18B20, 1-Wire) lesen und ausgeben
+    dallas.requestTemperatures();
+    const float supplyTemp = dallas.getTempCByIndex(0);
+    if (supplyTemp == DEVICE_DISCONNECTED_C) {
+        Serial.println(F("  Vorlauf   (kein Wert)"));
+    } else {
+        Serial.printf("  Vorlauf   %.1f °C\n", supplyTemp);
     }
 
     ThingSpeak::publishTemps(temps, valid, Config::ROOM_COUNT);
