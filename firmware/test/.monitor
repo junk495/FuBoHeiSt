@@ -1,0 +1,96 @@
+Unbekannt: 'c1' (h = Hilfe)
+---- Sent utf8 encoded message: "h" ----
+--- Befehle ---
+  k<N>  Ventil N kalibrieren (Referenzlauf, Hub speichern)
+  v<N> [0-100|a|z]  Ventil N auf X% (a=auf, z=zu), ohne Arg = Position
+  i     Status aller Ventile
+  t     Vorlauf-Temperatur (DS18B20)
+  d     DS18B20-Diagnose (Fehlercode)
+  w     WLAN-Status
+  wr    WLAN-Daten löschen → Portal
+  h     Hilfe
+---- Sent utf8 encoded message: "i" ----
+Kanal  Position  Ref  Hub
+  0        0   n   6838
+  1        0   n   0
+  2        0   n   0
+  3        0   n   0
+  4        0   n   0
+  5        0   n   0
+  6        0   n   0
+  7        0   n   0
+---- Sent utf8 encoded message: "k1" ----
+Kalibriere Ventil 1...
+Ventil fertig: ok=0 stall=0 ziel=0 pulse=0
+--- Scan ---
+  WohnKue  23.3 °C
+  Schlafz  23.3 °C
+  KiZi     (kein Wert)
+  Bad      (kein Wert)
+  WC       19.5 °C
+  Gang     23.4 °C
+  Vorlauf   (kein Wert)
+ThingSpeak: HTTP 200 → 11897
+---- Sent utf8 encoded message: "i" ----
+Kanal  Position  Ref  Hub
+  0        0   n   6838
+  1        0   n   0
+  2        0   n   0
+  3        0   n   0
+  4        0   n   0
+  5        0   n   0
+  6        0   n   0
+  7        0   n   0
+---- Sent utf8 encoded message: "h" ----
+--- Befehle ---
+  k<N>  Ventil N kalibrieren (Referenzlauf, Hub speichern)
+  v<N> [0-100|a|z]  Ventil N auf X% (a=auf, z=zu), ohne Arg = Position
+  i     Status aller Ventile
+  t     Vorlauf-Temperatur (DS18B20)
+  d     DS18B20-Diagnose (Fehlercode)
+  w     WLAN-Status
+  wr    WLAN-Daten löschen → Portal
+  h     Hilfe
+---- Sent utf8 encoded message: "v1 76.5" ----
+nicht kalibriert oder beschaefigt
+---- Sent utf8 encoded message: "v1 75" ----
+nicht kalibriert oder beschaefigt
+---- Sent utf8 encoded message: "v1 z" ----
+v1: zu...
+Ventil fertig: ok=0 stall=0 ziel=0 pulse=0
+--- Scan ---
+  WohnKue  23.3 °C
+  Schlafz  23.2 °C
+  KiZi     (kein Wert)
+  Bad      23.1 °C
+  WC       19.5 °C
+  Gang     23.4 °C
+  Vorlauf   (kein Wert)
+ThingSpeak: HTTP 200 → 11898
+---- Sent utf8 encoded message: "v1 a" ----
+v1: auf...
+Ventil fertig: ok=0 stall=0 ziel=0 pulse=0
+---- Sent utf8 encoded message: "i" ----
+Kanal  Position  Ref  Hub
+  0        0   n   6838
+  1        0   n   0
+  2        0   n   0
+  3        0   n   0
+  4        0   n   0
+  5        0   n   0
+  6        0   n   0
+  7        0   n   0
+--- Scan ---
+  WohnKue  23.3 °C
+  Schlafz  23.2 °C
+  KiZi     22.3 °C
+  Bad      23.1 °C
+  WC       19.5 °C
+  Gang     23.4 °C
+  Vorlauf   (kein Wert)
+ThingSpeak: HTTP 200 → 11899
+---- Sent utf8 encoded message: "t" ----
+Vorlauf: (kein Wert)
+---- Sent utf8 encoded message: "d" ----
+--- DS18B20 Diagnose ---
+  DSTherm ErrorCode: 1 (Fehler)
