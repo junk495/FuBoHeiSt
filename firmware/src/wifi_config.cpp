@@ -16,6 +16,10 @@ Preferences prefs;
 WebServer server(80);
 DNSServer dns;
 
+// Gespeicherte Zugangsdaten (Quelle: NVS, überleben normales Flashen).
+String sSavedSsid;
+String sSavedPass;
+
 const char kPageHtml[] = R"rawliteral(
 <!DOCTYPE html>
 <html lang="de">
@@ -31,6 +35,10 @@ const char kPageHtml[] = R"rawliteral(
     <label>Passwort:<br><input name="pass" type="password"></label><br><br>
     <button type="submit">Speichern</button>
   </form>
+  <p style="color:#666;font-size:0.9em">
+    Die Zugangsdaten werden dauerhaft im Flash (NVS) gespeichert und bleiben
+    bei einem normalen Firmware-Upload erhalten.
+  </p>
 </body>
 </html>
 )rawliteral";
@@ -48,42 +56,60 @@ void handleSave() {
     }
     prefs.putString("ssid", ssid);
     prefs.putString("pass", pass);
+    sSavedSsid = ssid;
+    sSavedPass = pass;
     server.send(200, "text/plain; charset=utf-8",
                 "Gespeichert. Der ESP32 startet neu und verbindet sich …");
     delay(500);
     ESP.restart();
 }
 
-bool tryConnect() {
-    const String ssid = prefs.getString("ssid", "");
-    if (ssid.length() == 0) {
-        Serial.println(F("Keine WLAN-Daten gespeichert → Captive-Portal"));
-        return false;
-    }
-    const String pass = prefs.getString("pass", "");
+// Robustheits-/Retry-Parameter.
+constexpr uint32_t kConnectTimeoutMs = 20000;   // Timeout erster Verbindungsversuch
+constexpr uint32_t kReconnectBaseMs = 5000;     // erster Reconnect-Abstand
+constexpr uint32_t kReconnectMaxMs = 60000;     // max. Reconnect-Abstand (Backoff)
+constexpr uint8_t  kMaxConnectFails = 8;        // danach → Captive-Portal
 
-    Serial.printf("Verbinde mit \"%s\" …\n", ssid.c_str());
-    WiFi.mode(WIFI_STA);
-    WiFi.begin(ssid.c_str(), pass.c_str());
+enum class State { Connecting, Connected, Reconnecting, Portal };
 
-    const uint32_t start = millis();
-    while (WiFi.status() != WL_CONNECTED && millis() - start < 20000) {
-        delay(250);
-        Serial.print('.');
-    }
-    Serial.println();
+State    sState = State::Connecting;
+uint32_t sStateStart = 0;
+uint32_t sLastDot = 0;
+uint32_t sReconnectDelayMs = kReconnectBaseMs;
+uint8_t  sFailCount = 0;
 
-    if (WiFi.status() == WL_CONNECTED) {
-        Serial.printf("Verbunden, IP: %s\n", WiFi.localIP().toString().c_str());
-        return true;
+// Meldet WLAN-Ereignisse auf der seriellen Konsole (nur Diagnose).
+void onWifiEvent(WiFiEvent_t event) {
+    switch (event) {
+        case ARDUINO_EVENT_WIFI_STA_CONNECTED:
+            Serial.println(F("[WLAN] STA verbunden – warte auf IP."));
+            break;
+        case ARDUINO_EVENT_WIFI_STA_DISCONNECTED:
+            Serial.println(F("[WLAN] STA getrennt."));
+            break;
+        case ARDUINO_EVENT_WIFI_STA_GOT_IP:
+            Serial.printf("[WLAN] IP: %s\n", WiFi.localIP().toString().c_str());
+            break;
+        default:
+            break;
     }
-    Serial.println(F("Verbindung fehlgeschlagen → Captive-Portal"));
-    WiFi.disconnect(true);
-    return false;
 }
 
-void runPortal() {
+void printConnected() {
+    Serial.printf("Verbunden, IP: %s, RSSI: %d dBm\n",
+                  WiFi.localIP().toString().c_str(), WiFi.RSSI());
+}
+
+void startReconnect() {
+    sState = State::Reconnecting;
+    sStateStart = millis();
+    sReconnectDelayMs = kReconnectBaseMs;
+    Serial.println(F("→ Reconnect-Modus."));
+}
+
+void startPortal() {
     Serial.println(F("Starte Hotspot \"FuBoHeiSt-Setup\" …"));
+    WiFi.disconnect(true);
     WiFi.mode(WIFI_AP);
     WiFi.softAP(kApSsid);
     dns.start(53, "*", WiFi.softAPIP());
@@ -96,10 +122,16 @@ void runPortal() {
     Serial.printf("Mit WLAN \"%s\" verbinden (IP %s) und Seite öffnen.\n",
                   kApSsid, WiFi.softAPIP().toString().c_str());
 
-    while (true) {  // läuft bis ESP.restart() nach dem Speichern
-        dns.processNextRequest();
-        server.handleClient();
-        delay(10);
+    sState = State::Portal;
+}
+
+const char* stateName() {
+    switch (sState) {
+        case State::Connecting:   return "verbindet";
+        case State::Connected:    return "verbunden";
+        case State::Reconnecting: return "reconnect";
+        case State::Portal:       return "portal";
+        default:                  return "unbekannt";
     }
 }
 
@@ -108,9 +140,124 @@ void runPortal() {
 namespace WifiConfig {
 
 void begin() {
-    prefs.begin(kNvsNamespace, false);  // read-write
-    if (tryConnect()) return;
-    runPortal();
+    prefs.begin(kNvsNamespace, false);  // read-write (Portal speichert später)
+
+    sSavedSsid = prefs.getString("ssid", "");
+    sSavedPass = prefs.getString("pass", "");
+
+    // Robuste Verbindung: Modem-Sleep aus, Auto-Reconnect an, keine
+    // Doppel-Ablage der Zugangsdaten durch die WiFi-Bibliothek (wir nutzen NVS).
+    WiFi.persistent(false);
+    WiFi.setAutoReconnect(true);
+    WiFi.setSleep(false);
+
+    WiFi.onEvent(onWifiEvent, ARDUINO_EVENT_WIFI_STA_CONNECTED);
+    WiFi.onEvent(onWifiEvent, ARDUINO_EVENT_WIFI_STA_DISCONNECTED);
+    WiFi.onEvent(onWifiEvent, ARDUINO_EVENT_WIFI_STA_GOT_IP);
+
+    if (sSavedSsid.length() == 0) {
+        Serial.println(F("Keine WLAN-Daten gespeichert → Captive-Portal"));
+        startPortal();
+        return;
+    }
+
+    Serial.printf("Verbinde mit \"%s\" …\n", sSavedSsid.c_str());
+    WiFi.mode(WIFI_STA);
+    WiFi.begin(sSavedSsid.c_str(), sSavedPass.c_str());
+
+    sState = State::Connecting;
+    sStateStart = millis();
+    sLastDot = millis();
+}
+
+void tick() {
+    switch (sState) {
+        case State::Connecting:
+            if (WiFi.status() == WL_CONNECTED) {
+                Serial.println();
+                printConnected();
+                sState = State::Connected;
+            } else if (millis() - sStateStart >= kConnectTimeoutMs) {
+                Serial.println();
+                Serial.println(F("Verbindung fehlgeschlagen."));
+                sFailCount++;
+                if (sFailCount >= kMaxConnectFails) {
+                    Serial.println(F("Zu viele Fehlversuche → Captive-Portal."));
+                    startPortal();
+                } else {
+                    startReconnect();
+                }
+            } else if (millis() - sLastDot >= 250) {
+                Serial.print('.');
+                sLastDot = millis();
+            }
+            break;
+
+        case State::Connected:
+            if (WiFi.status() != WL_CONNECTED) {
+                Serial.println(F("WLAN-Verbindung verloren."));
+                sFailCount = 0;
+                startReconnect();
+            }
+            break;
+
+        case State::Reconnecting:
+            if (WiFi.status() == WL_CONNECTED) {
+                printConnected();
+                sState = State::Connected;
+            } else if (millis() - sStateStart >= sReconnectDelayMs) {
+                sFailCount++;
+                Serial.printf("Reconnect-Versuch %d/%d …\n",
+                              sFailCount, kMaxConnectFails);
+                WiFi.disconnect(false);
+                delay(10);
+                WiFi.begin(sSavedSsid.c_str(), sSavedPass.c_str());
+                sStateStart = millis();
+                sReconnectDelayMs = sReconnectDelayMs * 2;
+                if (sReconnectDelayMs > kReconnectMaxMs) {
+                    sReconnectDelayMs = kReconnectMaxMs;
+                }
+                if (sFailCount >= kMaxConnectFails) {
+                    Serial.println(F("Zu viele Reconnect-Versuche → Captive-Portal."));
+                    startPortal();
+                }
+            }
+            break;
+
+        case State::Portal:
+            dns.processNextRequest();
+            server.handleClient();
+            break;
+    }
+}
+
+bool connected() {
+    return sState == State::Connected && WiFi.status() == WL_CONNECTED;
+}
+
+void printStatus() {
+    Serial.println(F("--- WLAN-Status ---"));
+    if (sSavedSsid.length() == 0) {
+        Serial.println(F("  Gespeicherte SSID: (keine)"));
+    } else {
+        Serial.printf("  Gespeicherte SSID: %s\n", sSavedSsid.c_str());
+    }
+    Serial.printf("  Zustand: %s\n", stateName());
+    if (WiFi.status() == WL_CONNECTED) {
+        Serial.printf("  IP: %s | RSSI: %d dBm\n",
+                      WiFi.localIP().toString().c_str(), WiFi.RSSI());
+    } else {
+        Serial.printf("  WLAN-Status-Code: %d\n", static_cast<int>(WiFi.status()));
+    }
+}
+
+void resetCredentials() {
+    Serial.println(F("Lösche gespeicherte WLAN-Daten und starte neu …"));
+    prefs.remove("ssid");
+    prefs.remove("pass");
+    prefs.end();
+    delay(200);
+    ESP.restart();
 }
 
 }  // namespace WifiConfig

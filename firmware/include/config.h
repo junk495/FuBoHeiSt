@@ -8,7 +8,7 @@
 namespace Config {
 
 // Zyklus: alle UPDATE_INTERVAL_MS wird gescannt und an ThingSpeak gesendet.
-constexpr uint32_t UPDATE_INTERVAL_MS = 60000;   // ThingSpeak Free: min. 15 s
+constexpr uint32_t UPDATE_INTERVAL_MS = 120000;  // 2 min (ThingSpeak Free: min. 15 s)
 
 // BLE-Scanfenster je Zyklus (WiFi-Koexistenz, siehe docs/sensorik.md §4).
 constexpr uint32_t SCAN_WINDOW_MS = 10000;
@@ -30,5 +30,8 @@ const RoomSensor ROOMS[] = {
 };
 
 constexpr int ROOM_COUNT = sizeof(ROOMS) / sizeof(ROOMS[0]);
+
+// ThingSpeak-Feld für die Vorlauftemperatur (DS18B20).
+constexpr int SUPPLY_FIELD = 7;
 
 }  // namespace Config

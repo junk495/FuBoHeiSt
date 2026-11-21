@@ -11,7 +11,8 @@
 
 namespace ThingSpeak {
 
-bool publishTemps(const float temps[], const bool valid[], int count) {
+bool publishTemps(const float temps[], const bool valid[], int count,
+                  float supplyTemp, bool supplyValid) {
     if (WiFi.status() != WL_CONNECTED) {
         Serial.println(F("ThingSpeak: kein WLAN"));
         return false;
@@ -26,7 +27,16 @@ bool publishTemps(const float temps[], const bool valid[], int count) {
         url += "&field";
         url += Config::ROOMS[i].field;
         url += "=";
-        url += String(temps[i], 1);  // 1 Nachkommastelle
+        url += String(temps[i], 2);  // 2 Nachkommastellen
+        any = true;
+    }
+
+    // Vorlauftemperatur (DS18B20) auf Feld 7
+    if (supplyValid) {
+        url += "&field";
+        url += Config::SUPPLY_FIELD;
+        url += "=";
+        url += String(supplyTemp, 2);  // 2 Nachkommastellen
         any = true;
     }
     if (!any) {

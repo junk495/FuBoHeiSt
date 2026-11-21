@@ -4,7 +4,8 @@
 namespace BleSensors {
 
 void begin();                      // NimBLE initialisieren
-void scan();                       // einmal SCAN_WINDOW_MS scannen (blockierend)
+bool startScan();                  // SCAN_WINDOW_MS scannen (nicht-blockierend)
+bool isScanning();                 // true, solange gescannt wird
 bool hasTemp(int roomIndex);       // letzter Wert vorhanden?
 float temp(int roomIndex);         // letzte Temperatur in °C
 
