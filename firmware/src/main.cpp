@@ -6,8 +6,9 @@
 
 #include <Arduino.h>
 
-#include <OneWire.h>
-#include <DallasTemperature.h>
+#include "OneWireNg_CurrentPlatform.h"
+#include "drivers/DSTherm.h"
+#include "utils/Placeholder.h"
 
 #include "ble_sensors.h"
 #include "config.h"
@@ -25,8 +26,22 @@ RippleCounter ripple;
 ValveController valve(motor, sense, ripple);
 
 // Vorlauftemperatur-Fühler (DS18B20, 1-Wire an Pin::ONEWIRE).
-OneWire oneWire(Pin::ONEWIRE);
-DallasTemperature dallas(&oneWire);
+// OneWireNg unterstützt auch GPIO > 33 (z. B. GPIO40) auf dem ESP32-S3.
+OneWireNg* ow = nullptr;
+
+// Liest die DS18B20-Temperatur (12-bit). Rückgabe: OneWireNg-Fehlercode
+// (0 = EC_SUCCESS); bei Erfolg steht die Temperatur in °C in `out`.
+int readSupplyTemp(float& out) {
+    if (!ow) return -1;
+    DSTherm drv(*ow);
+    drv.convertTempAll(DSTherm::MAX_CONV_TIME, false);
+    Placeholder<DSTherm::Scratchpad> scrpd;
+    const OneWireNg::ErrorCode ec = drv.readScratchpadSingle(scrpd);
+    if (ec == OneWireNg::EC_SUCCESS) {
+        out = scrpd->getTemp2() / 16.0f;
+    }
+    return static_cast<int>(ec);
+}
 
 // Serielles Kommando-Interface (nicht-blockierend).
 bool   valveBusyPrev = false;
@@ -48,7 +63,9 @@ void setup() {
     sense.begin();
     ripple.begin();
     valve.begin();
-    dallas.begin();   // 1-Wire-Vorlauffühler (DS18B20)
+    // 1-Wire-Vorlauffühler (DS18B20); false = interner Pullup aus
+    // (der externe 4,7-kΩ-Pullup auf der Platine bleibt maßgeblich).
+    ow = new OneWireNg_CurrentPlatform(Pin::ONEWIRE, false);
     Serial.println(F("Ventilsteuerung bereit (h = Hilfe)."));
 
     WifiConfig::begin();   // WLAN verbinden oder Captive-Portal (nicht-blockierend)
@@ -132,12 +149,11 @@ void loop() {
     }
 
     // Vorlauftemperatur (DS18B20, 1-Wire) lesen und ausgeben
-    dallas.requestTemperatures();
-    const float supplyTemp = dallas.getTempCByIndex(0);
-    if (supplyTemp == DEVICE_DISCONNECTED_C) {
-        Serial.println(F("  Vorlauf   (kein Wert)"));
-    } else {
+    float supplyTemp = 0.0f;
+    if (readSupplyTemp(supplyTemp) == 0) {
         Serial.printf("  Vorlauf   %.1f °C\n", supplyTemp);
+    } else {
+        Serial.println(F("  Vorlauf   (kein Wert)"));
     }
 
     ThingSpeak::publishTemps(temps, valid, Config::ROOM_COUNT);
@@ -155,11 +171,33 @@ void processCommand(const String& line) {
         return;
     }
 
+    if (c == 't') {
+        float t = 0.0f;
+        if (readSupplyTemp(t) == 0) {
+            Serial.printf("Vorlauf: %.1f °C\n", t);
+        } else {
+            Serial.println(F("Vorlauf: (kein Wert)"));
+        }
+        return;
+    }
+
+    if (c == 'd') {
+        Serial.println(F("--- DS18B20 Diagnose ---"));
+        float t = 0.0f;
+        const int ec = readSupplyTemp(t);
+        Serial.printf("  DSTherm ErrorCode: %d (%s)\n", ec,
+                      ec == 0 ? "OK" : "Fehler");
+        if (ec == 0) Serial.printf("  Temperatur: %.1f °C\n", t);
+        return;
+    }
+
     if (c == 'h') {
         Serial.println(F("--- Befehle ---"));
         Serial.println(F("  k<N>  Ventil N kalibrieren (Referenzlauf, Hub speichern)"));
         Serial.println(F("  v<N> [0-100|a|z]  Ventil N auf X% (a=auf, z=zu), ohne Arg = Position"));
         Serial.println(F("  i     Status aller Ventile"));
+        Serial.println(F("  t     Vorlauf-Temperatur (DS18B20)"));
+        Serial.println(F("  d     DS18B20-Diagnose (Presence + Geräteanzahl)"));
         Serial.println(F("  w     WLAN-Status"));
         Serial.println(F("  wr    WLAN-Daten löschen → Portal"));
         Serial.println(F("  h     Hilfe"));

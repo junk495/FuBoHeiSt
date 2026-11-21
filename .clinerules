@@ -9,3 +9,4 @@
 7. Offline-first: kein Cloud-/Internet-Zwang im Regelkreis (MQTT nur lokal).
 8. 230 V nur am SSR-Ausgang – nie Mains auf die Logik legen.
 9. Pin-/Bauteil-Belegung aus `docs/` verwenden, nicht improvisieren.
+10. Analysen und Diagnosen nur auf Basis gesicherter, verifizierter Fakten treffen (z. B. Messwerte, Logs, exakte Verdrahtung). Fehlen solche Fakten: nachfragen oder klar sagen, dass keine sichere Analyse möglich ist – nicht spekulieren.
