@@ -12,6 +12,7 @@
 
 #include "ble_sensors.h"
 #include "config.h"
+#include "ds18b20_config.h"
 #include "pins.h"
 #include "thingspeak.h"
 #include "wifi_config.h"
@@ -25,22 +26,68 @@ CurrentSense sense;
 RippleCounter ripple;
 ValveController valve(motor, sense, ripple);
 
-// Vorlauftemperatur-Fühler (DS18B20, 1-Wire an Pin::ONEWIRE).
+// DS18B20-Sensoren am 1-Wire-Bus (Pin::ONEWIRE).
 // OneWireNg unterstützt auch GPIO > 33 (z. B. GPIO40) auf dem ESP32-S3.
 OneWireNg* ow = nullptr;
 
-// Liest die DS18B20-Temperatur (12-bit). Rückgabe: OneWireNg-Fehlercode
-// (0 = EC_SUCCESS); bei Erfolg steht die Temperatur in °C in `out`.
-int readSupplyTemp(float& out) {
-    if (!ow) return -1;
+// Messwerte je konfiguriertem DS18B20 (siehe ds18b20_config.h).
+struct DsReading {
+    float temp = 0.0f;
+    bool valid = false;
+    int error = -1;
+};
+DsReading dsReadings[Ds18b20Config::SENSOR_COUNT];
+
+// Hex-String (16 Hex-Zeichen, optional mit -, :, Leerzeichen getrennt)
+// → 8-Byte-ROM-Adresse (OneWireNg::Id). Rückgabe: true bei Erfolg.
+bool parseRom(const char* str, OneWireNg::Id& id) {
+    uint8_t bytes[8];
+    int n = 0;
+    int hi = -1;
+    for (const char* p = str; *p; p++) {
+        const char c = *p;
+        int v;
+        if (c >= '0' && c <= '9') v = c - '0';
+        else if (c >= 'a' && c <= 'f') v = c - 'a' + 10;
+        else if (c >= 'A' && c <= 'F') v = c - 'A' + 10;
+        else if (c == '-' || c == ':' || c == ' ' || c == '_') continue;
+        else return false;
+
+        if (hi < 0) {
+            hi = v;
+        } else {
+            if (n >= 8) return false;
+            bytes[n++] = static_cast<uint8_t>((hi << 4) | v);
+            hi = -1;
+        }
+    }
+    if (hi >= 0 || n != 8) return false;
+    for (int i = 0; i < 8; i++) id[i] = bytes[i];
+    return true;
+}
+
+// Liest alle konfigurierten DS18B20-Sensoren (per ROM-Adresse).
+void readAllDs18b20() {
+    for (int i = 0; i < Ds18b20Config::SENSOR_COUNT; i++) {
+        dsReadings[i].valid = false;
+        dsReadings[i].error = -1;
+    }
+    if (!ow) return;
+
     DSTherm drv(*ow);
     drv.convertTempAll(DSTherm::MAX_CONV_TIME, false);
-    Placeholder<DSTherm::Scratchpad> scrpd;
-    const OneWireNg::ErrorCode ec = drv.readScratchpadSingle(scrpd);
-    if (ec == OneWireNg::EC_SUCCESS) {
-        out = scrpd->getTemp2() / 16.0f;
+
+    for (int i = 0; i < Ds18b20Config::SENSOR_COUNT; i++) {
+        OneWireNg::Id id;
+        if (!parseRom(Ds18b20Config::SENSORS[i].rom, id)) continue;  // Platzhalter/ungültig
+        Placeholder<DSTherm::Scratchpad> scrpd;
+        const OneWireNg::ErrorCode ec = drv.readScratchpad(id, scrpd);
+        dsReadings[i].error = static_cast<int>(ec);
+        if (ec == OneWireNg::EC_SUCCESS) {
+            dsReadings[i].temp = scrpd->getTemp2() / 16.0f;
+            dsReadings[i].valid = true;
+        }
     }
-    return static_cast<int>(ec);
 }
 
 // Serielles Kommando-Interface (nicht-blockierend).
@@ -148,17 +195,28 @@ void loop() {
         }
     }
 
-    // Vorlauftemperatur (DS18B20, 1-Wire) lesen und ausgeben
-    float supplyTemp = 0.0f;
-    const bool supplyValid = (readSupplyTemp(supplyTemp) == 0);
-    if (supplyValid) {
-        Serial.printf("  Vorlauf   %.1f °C\n", supplyTemp);
-    } else {
-        Serial.println(F("  Vorlauf   (kein Wert)"));
+    // DS18B20-Temperaturen (1-Wire) lesen und ausgeben
+    readAllDs18b20();
+    for (int i = 0; i < Ds18b20Config::SENSOR_COUNT; i++) {
+        if (dsReadings[i].valid) {
+            Serial.printf("  %-8s %.1f °C\n", Ds18b20Config::SENSORS[i].name, dsReadings[i].temp);
+        } else {
+            Serial.printf("  %-8s (kein Wert)\n", Ds18b20Config::SENSORS[i].name);
+        }
     }
 
-    ThingSpeak::publishTemps(temps, valid, Config::ROOM_COUNT,
-                             supplyTemp, supplyValid);
+    // ThingSpeak: Raumtemperaturen (Feld 1-6) + DS18B20 (Feld != 0)
+    ThingSpeak::Field extra[Ds18b20Config::SENSOR_COUNT];
+    int extraCount = 0;
+    for (int i = 0; i < Ds18b20Config::SENSOR_COUNT; i++) {
+        if (Ds18b20Config::SENSORS[i].field == 0) continue;
+        extra[extraCount].field = Ds18b20Config::SENSORS[i].field;
+        extra[extraCount].value = dsReadings[i].temp;
+        extra[extraCount].valid = dsReadings[i].valid;
+        extraCount++;
+    }
+
+    ThingSpeak::publishTemps(temps, valid, Config::ROOM_COUNT, extra, extraCount);
 }
 
 void processCommand(const String& line) {
@@ -174,22 +232,34 @@ void processCommand(const String& line) {
     }
 
     if (c == 't') {
-        float t = 0.0f;
-        if (readSupplyTemp(t) == 0) {
-            Serial.printf("Vorlauf: %.1f °C\n", t);
-        } else {
-            Serial.println(F("Vorlauf: (kein Wert)"));
+        readAllDs18b20();
+        for (int i = 0; i < Ds18b20Config::SENSOR_COUNT; i++) {
+            if (dsReadings[i].valid) {
+                Serial.printf("%s: %.1f °C\n", Ds18b20Config::SENSORS[i].name, dsReadings[i].temp);
+            } else {
+                Serial.printf("%s: (kein Wert, Fehler %d)\n",
+                              Ds18b20Config::SENSORS[i].name, dsReadings[i].error);
+            }
         }
         return;
     }
 
-    if (c == 'd') {
-        Serial.println(F("--- DS18B20 Diagnose ---"));
-        float t = 0.0f;
-        const int ec = readSupplyTemp(t);
-        Serial.printf("  DSTherm ErrorCode: %d (%s)\n", ec,
-                      ec == 0 ? "OK" : "Fehler");
-        if (ec == 0) Serial.printf("  Temperatur: %.1f °C\n", t);
+    if (c == 's') {
+        Serial.println(F("--- DS18B20 am Bus (Adressen) ---"));
+        if (!ow) { Serial.println(F("  (1-Wire nicht initialisiert)")); return; }
+        int n = 0;
+        ow->searchReset();
+        OneWireNg::Id id;
+        while (ow->search(id) == OneWireNg::EC_MORE) {
+            n++;
+            Serial.print(F("  "));
+            for (int i = 0; i < 8; i++) {
+                if (i) Serial.print('-');
+                Serial.printf("%02x", static_cast<unsigned>(id[i]));
+            }
+            Serial.println();
+        }
+        Serial.printf("  Gesamt: %d Sensor(en)\n", n);
         return;
     }
 
@@ -198,8 +268,8 @@ void processCommand(const String& line) {
         Serial.println(F("  k<N>  Ventil N kalibrieren (Referenzlauf, Hub speichern)"));
         Serial.println(F("  v<N> [0-100|a|z]  Ventil N auf X% (a=auf, z=zu), ohne Arg = Position"));
         Serial.println(F("  i     Status aller Ventile"));
-        Serial.println(F("  t     Vorlauf-Temperatur (DS18B20)"));
-        Serial.println(F("  d     DS18B20-Diagnose (Fehlercode)"));
+        Serial.println(F("  t     DS18B20-Temperaturen lesen"));
+        Serial.println(F("  s     DS18B20-Adressen suchen (für Konfiguration)"));
         Serial.println(F("  w     WLAN-Status"));
         Serial.println(F("  wr    WLAN-Daten löschen → Portal"));
         Serial.println(F("  h     Hilfe"));

@@ -193,9 +193,9 @@ fbh/config/...                 → Parameter (publish)
 4. Kalibrier-/Logging-Phase → thermisches Modell (KI-Tuning)
 
 ### Firmware-Stand (Logging)
-Die Firmware (`firmware/src`) liest aktuell **6 BLE-Raumfühler** (BTHome v2) sowie den
-**Vorlauftemperatur-Fühler (DS18B20, 1-Wire)** aus und pusht die **Raumtemperaturen**
-(Feld 1–6) und die **Vorlauftemperatur** (Feld 7) an **ThingSpeak**.
+Die Firmware (`firmware/src`) liest aktuell **6 BLE-Raumfühler** (BTHome v2) sowie
+**DS18B20-Temperaturfühler (1-Wire)** aus und pusht die **Raumtemperaturen** (Feld 1–6)
+sowie die **konfigurierten DS18B20-Felder** an **ThingSpeak**.
 
 - WLAN-Zugangsdaten werden **nicht fest kodiert**, sondern beim ersten Start über ein
   **Captive-Portal** (Hotspot „FuBoHeiSt-Setup") eingegeben und dauerhaft im **NVS**
@@ -208,16 +208,19 @@ Die Firmware (`firmware/src`) liest aktuell **6 BLE-Raumfühler** (BTHome v2) so
   das Portal geöffnet. Diagnose/Reset über die seriellen Befehle `w` (Status) und
   `wr` (Zugangsdaten löschen → Portal).
 - Konfiguration (Fühlerliste, Intervalle) in `firmware/include/config.h`.
-- Der **Vorlauftemperatur-Fühler (DS18B20)** wird über **OneWireNg** an **GPIO40** gelesen,
-  im Monitor ausgegeben und an **ThingSpeak Feld 7** gesendet. OneWireNg statt der
-  klassischen `OneWire`-Lib: deren ESP32-Portierung verweigert für GPIOs > 33 den
-  Ausgangsmodus (Überbleibsel vom klassischen ESP32) und konnte GPIO40 daher nicht ansteuern.
+- **DS18B20-Sensoren (1-Wire, bis zu 16)** hängen parallel an **GPIO40** und werden über
+  **OneWireNg** per eindeutiger 64-Bit-Adresse gelesen. Die Sensorliste (Name, Adresse,
+  ThingSpeak-Feld) wird in **`firmware/include/ds18b20_config.h`** gepflegt; Adressen liest
+  der serielle Befehl **`s`** aus. `field = 0` = nicht an ThingSpeak senden.
+  OneWireNg statt der klassischen `OneWire`-Lib: deren ESP32-Portierung verweigert für
+  GPIOs > 33 den Ausgangsmodus (Überbleibsel vom klassischen ESP32) und konnte GPIO40
+  daher nicht ansteuern.
 - Secrets (ThingSpeak-Key) in `firmware/include/secrets.h` (gitignored, Vorlage: `secrets.example.h`).
 - **Offline-first bleibt gewahrt:** ThingSpeak ist nur Logging (Entwicklung/Auswertung).
   Fällt das Internet aus, läuft der spätere Regelkreis lokal weiter.
 - Der Motor-Bringup (Stufe 1) liegt als Referenz in `firmware/test/motor_bringup/`.
 - Die **nicht-blockierende Ventilsteuerung** (`ValveController`) ist in `firmware/src`
-  integriert und über das serielle Interface erreichbar (`k<N>`, `v<N>`, `i`, `t`, `d`, `w`, `wr`, `h`).
+  integriert und über das serielle Interface erreichbar (`k<N>`, `v<N>`, `i`, `t`, `s`, `w`, `wr`, `h`).
   Die Ventilfahrt hat **Vorrang**: während einer Fahrt wird kein neuer BLE-Zyklus gestartet
   (ein bereits laufender, nicht-blockierender Scan läuft im Hintergrund weiter).
   Ein benutzerfreundlicheres Interface (Web/MQTT) folgt später.
