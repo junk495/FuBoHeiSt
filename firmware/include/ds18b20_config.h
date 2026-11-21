@@ -23,7 +23,7 @@ const Sensor SENSORS[] = {
     // (über Befehl `s` auslesbar).
     {"Vorlauf", "2861b5ed0b000062", 7},
     // Weitere Sensoren hier ergänzen, z. B.:
-    {"Bad_Vorlauf",  "2842d35100000042", 8},
+    {"Bad_Vor",  "2842d35100000042", 8},
 };
 
 constexpr int SENSOR_COUNT = sizeof(SENSORS) / sizeof(SENSORS[0]);
