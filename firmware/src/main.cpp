@@ -150,13 +150,15 @@ void loop() {
 
     // Vorlauftemperatur (DS18B20, 1-Wire) lesen und ausgeben
     float supplyTemp = 0.0f;
-    if (readSupplyTemp(supplyTemp) == 0) {
+    const bool supplyValid = (readSupplyTemp(supplyTemp) == 0);
+    if (supplyValid) {
         Serial.printf("  Vorlauf   %.1f °C\n", supplyTemp);
     } else {
         Serial.println(F("  Vorlauf   (kein Wert)"));
     }
 
-    ThingSpeak::publishTemps(temps, valid, Config::ROOM_COUNT);
+    ThingSpeak::publishTemps(temps, valid, Config::ROOM_COUNT,
+                             supplyTemp, supplyValid);
 }
 
 void processCommand(const String& line) {
@@ -197,7 +199,7 @@ void processCommand(const String& line) {
         Serial.println(F("  v<N> [0-100|a|z]  Ventil N auf X% (a=auf, z=zu), ohne Arg = Position"));
         Serial.println(F("  i     Status aller Ventile"));
         Serial.println(F("  t     Vorlauf-Temperatur (DS18B20)"));
-        Serial.println(F("  d     DS18B20-Diagnose (Presence + Geräteanzahl)"));
+        Serial.println(F("  d     DS18B20-Diagnose (Fehlercode)"));
         Serial.println(F("  w     WLAN-Status"));
         Serial.println(F("  wr    WLAN-Daten löschen → Portal"));
         Serial.println(F("  h     Hilfe"));

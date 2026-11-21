@@ -31,4 +31,7 @@ const RoomSensor ROOMS[] = {
 
 constexpr int ROOM_COUNT = sizeof(ROOMS) / sizeof(ROOMS[0]);
 
+// ThingSpeak-Feld für die Vorlauftemperatur (DS18B20).
+constexpr int SUPPLY_FIELD = 7;
+
 }  // namespace Config
