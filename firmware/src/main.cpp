@@ -205,18 +205,20 @@ void loop() {
         }
     }
 
-    // ThingSpeak: Raumtemperaturen (Feld 1-6) + DS18B20 (Feld != 0)
-    ThingSpeak::Field extra[Ds18b20Config::SENSOR_COUNT];
-    int extraCount = 0;
+    // ThingSpeak: Raumtemperaturen (BLE) an den Raumtemperatur-Kanal.
+    ThingSpeak::publishRoomTemps(temps, valid, Config::ROOM_COUNT);
+
+    // ThingSpeak: DS18B20-Werte an den DS18B20-Kanal (Feld != 0).
+    ThingSpeak::Field dsFields[Ds18b20Config::SENSOR_COUNT];
+    int dsCount = 0;
     for (int i = 0; i < Ds18b20Config::SENSOR_COUNT; i++) {
         if (Ds18b20Config::SENSORS[i].field == 0) continue;
-        extra[extraCount].field = Ds18b20Config::SENSORS[i].field;
-        extra[extraCount].value = dsReadings[i].temp;
-        extra[extraCount].valid = dsReadings[i].valid;
-        extraCount++;
+        dsFields[dsCount].field = Ds18b20Config::SENSORS[i].field;
+        dsFields[dsCount].value = dsReadings[i].temp;
+        dsFields[dsCount].valid = dsReadings[i].valid;
+        dsCount++;
     }
-
-    ThingSpeak::publishTemps(temps, valid, Config::ROOM_COUNT, extra, extraCount);
+    ThingSpeak::publishDs18b20(dsFields, dsCount);
 }
 
 void processCommand(const String& line) {

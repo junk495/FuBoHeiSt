@@ -1,19 +1,22 @@
 #pragma once
 
-// ThingSpeak-Anbindung.
+// ThingSpeak-Anbindung: zwei getrennte Kanäle (Raumtemperatur + DS18B20).
+
 namespace ThingSpeak {
 
-// Ein zusätzlicher Messwert (Temperatur) für ein ThingSpeak-Feld.
+// Ein Messwert (Temperatur) für ein ThingSpeak-Feld.
 struct Field {
     int field;    // Feldnummer (0 = nicht senden)
     float value;  // Messwert
     bool valid;   // gültig?
 };
 
-// Sendet die Raumtemperaturen als field<N>=<wert> (nur gültige Werte) und
-// optional weitere Felder (z. B. DS18B20-Sensoren).
-// Rückgabe: true bei HTTP 200.
-bool publishTemps(const float temps[], const bool valid[], int count,
-                  const Field extra[], int extraCount);
+// Sendet die BLE-Raumtemperaturen an den Raumtemperatur-Kanal
+// (THINGSPEAK_API_KEY in secrets.h). Rückgabe: true bei HTTP 200.
+bool publishRoomTemps(const float temps[], const bool valid[], int count);
+
+// Sendet DS18B20-Werte an den DS18B20-Kanal
+// (THINGSPEAK_DS18B20_API_KEY in secrets.h). Rückgabe: true bei HTTP 200.
+bool publishDs18b20(const Field fields[], int count);
 
 }  // namespace ThingSpeak

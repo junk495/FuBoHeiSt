@@ -21,12 +21,12 @@ struct Sensor {
 const Sensor SENSORS[] = {
     // Den Platzhalter "xxxxxxxxxxxxxxxx" durch die echte Adresse ersetzen
     // (über Befehl `s` auslesbar).
-    {"Vorlauf", "2861b5ed0b000062", 7},
+    {"Vorlauf", "2861b5ed0b000062", 1},
     // Weitere Sensoren hier ergänzen, z. B.:
-    {"SlZi_Vor",  "280612ed0b000046", 0},
-    {"KiZi_Vor",  "280a9bec0b00008c", 0},
-    {"Bad_Vor",  "289662ed0b00009a", 8},
-    {"Gang_Vor",  "28cab7ec0b0000ca", 0},
+    {"SlZi_Vor",  "280612ed0b000046", 2},
+    {"KiZi_Vor",  "280a9bec0b00008c", 3},
+    {"Bad_Vor",  "289662ed0b00009a", 4},
+    {"Gang_Vor",  "28cab7ec0b0000ca", 5},
 };
 
 constexpr int SENSOR_COUNT = sizeof(SENSORS) / sizeof(SENSORS[0]);
