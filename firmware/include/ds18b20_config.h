@@ -23,7 +23,7 @@ const Sensor SENSORS[] = {
     // (über Befehl `s` auslesbar).
     {"Vorlauf", "2861b5ed0b000062", 7},
     // Weitere Sensoren hier ergänzen, z. B.:
-    {"Sschlafz_Vor",  "280612ed0b000046", 0},
+    {"SlZi_Vor",  "280612ed0b000046", 0},
     {"KiZi_Vor",  "280a9bec0b00008c", 0},
     {"Bad_Vor",  "289662ed0b00009a", 0},
     {"Gang_Vor",  "28cab7ec0b0000ca", 0},
