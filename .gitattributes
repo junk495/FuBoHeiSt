@@ -1,0 +1,3 @@
+# Zeilenenden: alle Textdateien werden im Repo und im Arbeitsbaum einheitlich
+# als LF gespeichert (kein OS-abhängiges CRLF). Binärdateien erkennt Git automatisch.
+* text=auto eol=lf
