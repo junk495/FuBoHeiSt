@@ -34,7 +34,7 @@ Die elektronische Umsetzung (Schaltplan, Pinbelegung, BOM, Firmware-Module) steh
 **Regelgrößen (Eingänge):**
 - Raumtemperatur je Zone (Soll/Ist).
 - Außentemperatur (Vorsteuerung).
-- Bodentemperatur (modellbasiert, optional 1 Sensor).
+- Bodentemperatur (modellbasiert; kein permanenter Bodensensor).
 
 **Zonen (7 Kreise):**
 
@@ -74,6 +74,10 @@ Sonderfall **Küche + Wohnzimmer**: ein offener Raum, aber zwei getrennte Kreise
   - Liegt der Vorlauf dauerhaft ≤ ~32 °C → Holz ist sicher, das Modell genügt.
   - Liegt er höher → **1 Bodensensor** im kritischsten Holzraum als harte Grenze.
 
+- **Entscheidung (Stand aktuell):** kein permanenter Bodensensor. Gemessene max. Vorlauftemperatur
+  ≈ 32 °C (an der Schwelle). **Temporäre Bodensensoren** zum Entwickeln/Simulieren des
+  Bodenverhaltens werden erwogen.
+
 - **Wichtig fürs Modell:** Ein statisches `Bodentemp = f(...)` reicht nicht – der Boden folgt dem Ventil nur verzögert (thermische Trägheit, τ ≈ 45–90 min). Das Bodenmodell muss ein **zeitdiskretes RC-Glied (exponentiell geglätteter Zustand)** sein, sonst drosselt es das Ventil sofort nach dem Öffnen.
 
 ## 5. KI-Integration (nur Entwicklung, nicht im Regelkreis)
@@ -100,7 +104,7 @@ Sonderfall **Küche + Wohnzimmer**: ein offener Raum, aber zwei getrennte Kreise
 
 - **Regelkreis 100 % lokal** auf dem ESP32-S3; kein Internet, kein Cloud-Zwang.
 - **MQTT (lokal, Mosquitto)** + optional **Home Assistant** nur für Monitoring/manuelle Übersteuerung – fällt der Broker aus, läuft die Heizung unverändert weiter.
-- **Sensoren:** 6 Raumfühler (Funk, Modell noch offen), 1 Vorlauf-DS18B20 (1-Wire), optional 1 Bodenfühler.
+- **Sensoren:** 6 Raumfühler (Funk), 1 Vorlauf-DS18B20 (1-Wire), **kein permanenter Bodenfühler** (temporär für Entwicklung erwogen).
 
 ## 7. Sicherheit & Betrieb
 

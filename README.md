@@ -22,21 +22,25 @@
 - Endanschlag über Stall-Detection (Stromanstieg), Zwischenpositionen über Ripple-Counting.
 - Getriebe selbsthemmend → kein Haltestrom nötig.
 
-## 2. Zonen- & Sensorplan
+## 2. Heizkreis- & Sensorplan
 
-| Zone | Raum | Belag | Max. Bodentemp. | Raumfühler |
-|---|---|---|---|---|
-| 1 | Bad | Fliesen | 29 °C (Bad bis ~33) | 1 |
-| 2 | WC | Fliesen | 29 °C | 1 |
-| 3 | Vorraum | Fliesen | 29 °C | 1 |
-| 4 | Küche | Fliesen | 29 °C | ⤵ geteilt mit WZ |
-| 5 | Wohnzimmer | Holz | 27 °C | ⤴ geteilt mit Küche |
-| 6 | Schlafzimmer | Holz | 27 °C | 1 |
-| 7 | Kinderzimmer | Holz | 27 °C | 1 |
+**Reale Heizkreise am Verteiler** (Reihenfolge links → rechts; Quelle: [`docs/heizung-system.md`](docs/heizung-system.md)):
 
-- **7 Zonen, 7 Ventile, 6 Raumfühler** (+ 1 verkabelter Reserve-Kanal) (Küche + Wohnzimmer = ein offener Raum mit 2 getrennten Kreisen → 1 gemeinsamer Fühler, 2 unabhängige Ventile mit unterschiedlichen Boden-Grenzen).
-- **1 Vorlauftemperatur-Fühler** (DS18B20-Anlegefühler, 1-Wire).
-- **Bodentemperatur modellbasiert** (Kalibrierphase: Messung → Modell); **optional 1 Bodensensor** nur, falls Vorlauf > ~32 °C.
+| Kreis | Label | Raum | Belag | Max. Bodentemp. | Raumfühler |
+|---|---|---|---|---|---|
+| 1 | WZ1 (85 m) | Wohnzimmer | Holz | 27 °C | WohnKue (geteilt) |
+| 2 | WZ2 (85 m) | Wohnzimmer | Holz | 27 °C | WohnKue (geteilt) |
+| 3 | KÜ (80 m) | Küche | Fliesen | 29 °C | WohnKue (geteilt) |
+| 4 | Gang (60 m) | Vorraum | Fliesen | 29 °C | Gang |
+| 5 | Bad (55 m) | Bad + WC | Fliesen | 29 °C | Bad **und** WC |
+| 6 | SZ2 (100 m) | Kinderzimmer | Holz | 27 °C | KiZi |
+| 7 | SZ1 (90 m) | Schlafzimmer | Holz | 27 °C | Schlafz |
+
+- **7 Heizkreise, 7 Ventile, 6 Raumfühler** (+ 1 verkabelter Reserve-Kanal).
+- **Wohnküche:** WZ1 + WZ2 + KÜ = ein großer Raum → 1 gemeinsamer Fühler (`WohnKue`), 3 unabhängige Ventile mit unterschiedlichen Boden-Grenzen (Holz 27 °C / Fliesen 29 °C).
+- **Bad + WC:** Kreis „Bad" versorgt zwei getrennte Räume mit je eigenem Fühler (`Bad`, `WC`) → 1 Ventil, 2 Fühler.
+- **Vorlauftemperatur-Fühler:** 1× DS18B20 (Haupt-Vorlauf) + geplant 7× DS18B20 (je Kreis) = **8 Stück** (1-Wire, GPIO40).
+- **Bodentemperatur modellbasiert** (Kalibrierphase: Messung → Modell). **Kein permanenter Bodensensor** (Entscheidung); max. gemessene Vorlauftemperatur ≈ 32 °C. Temporäre Bodensensoren für die Entwicklung werden erwogen (offen).
 
 ## 3. Hardware-Architektur
 
@@ -88,7 +92,7 @@ Motorstrom:
 |---|---|---|---|
 | BLE-Funksensor (Modell offen) | Raumtemp. | 6 | offen |
 | DS18B20-Anlegefühler | Vorlauf | 1 | kaufen |
-| DS18B20-Bodenfühler | optional | 0–1 | optional |
+| DS18B20-Bodenfühler | nur temporär (Entwicklung) | 0 dauerhaft | offen |
 
 ## 4. Firmware-Architektur
 
@@ -182,7 +186,8 @@ fbh/config/...                 → Parameter (publish)
 ## 6. Offene Punkte (TODO)
 - [x] Hauptventil: SSR (3,3 V, 40 A) – geklärt
 - [x] BLE-Sensor-Modell festgelegt: LYWSD03MMC mit pvvx-Firmware, Advertising **BTHome v2** (Details in `docs/sensorik.md`)
-- [ ] Vorlauftemperatur messen → entscheidet, ob ein Bodensensor nötig ist
+- [x] Vorlauftemperatur gemessen (max. ≈ 32 °C) → **kein permanenter Bodensensor** (Entscheidung)
+- [ ] Temporäre Bodensensoren für Entwicklung/Simulation: sinnvoll? (offen)
 - [ ] Holz-Bodentemperatur-Grenzwert final nach Herstellerangabe prüfen
 - [x] Pin-Belegung finalisiert
 

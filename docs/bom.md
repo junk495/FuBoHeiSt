@@ -71,5 +71,5 @@ Stand: vor Schaltplan. Vollständige Liste aller PCB-Bauteile mit Mengen.
 ## Noch offen
 
 - Raumfühler (6×): Funk-Sensor, Modell offen (siehe `docs/sensorik.md`).
-- Bodensensor (0–1×): nur falls Vorlauf > ~32 °C.
+- Bodensensor: kein permanenter (temporär für Entwicklung erwogen).
 

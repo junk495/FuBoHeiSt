@@ -24,7 +24,7 @@ Format wie in `can_bus.md`: Netzliste als `RefDes.Pin`.
 | CN9 | XH2.54 2-pol (5-V-Eingang) | Power |
 | CN10 | XH2.54 2-pol (SSR-Steuerung) | Ausgänge |
 | CN11 | XH2.54 3-pol (1-Wire/DS18B20 – Vorlauf) | 1-Wire |
-| CN12 | XH2.54 3-pol (1-Wire/DS18B20 – optional Bodenfühler) | 1-Wire |
+| CN12 | XH2.54 3-pol (1-Wire/DS18B20 – temporärer Bodenfühler) | 1-Wire |
 | CN-UART | XH2.54 4-pol (UART-Debug) | Testpunkte |
 
 ## Netznamen (Power)
