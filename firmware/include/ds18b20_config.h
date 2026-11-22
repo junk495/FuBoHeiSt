@@ -25,7 +25,7 @@ const Sensor SENSORS[] = {
     // Weitere Sensoren hier ergänzen, z. B.:
     {"SlZi_Vor",  "280612ed0b000046", 0},
     {"KiZi_Vor",  "280a9bec0b00008c", 0},
-    {"Bad_Vor",  "289662ed0b00009a", 0},
+    {"Bad_Vor",  "289662ed0b00009a", 8},
     {"Gang_Vor",  "28cab7ec0b0000ca", 0},
 };
 
