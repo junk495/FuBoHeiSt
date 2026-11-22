@@ -245,19 +245,40 @@ void processCommand(const String& line) {
     }
 
     if (c == 's') {
-        Serial.println(F("--- DS18B20 am Bus (Adressen) ---"));
+        Serial.println(F("--- DS18B20 am Bus (Adresse + Temperatur) ---"));
         if (!ow) { Serial.println(F("  (1-Wire nicht initialisiert)")); return; }
+
+        // 1) Alle Sensoren suchen und Adressen sammeln (max. 16, wie config.h erlaubt).
+        OneWireNg::Id ids[16];
         int n = 0;
         ow->searchReset();
-        OneWireNg::Id id;
-        while (ow->search(id) == OneWireNg::EC_MORE) {
+        while (n < 16 && ow->search(ids[n]) == OneWireNg::EC_MORE) {
             n++;
+        }
+
+        if (n == 0) {
+            Serial.println(F("  Kein Sensor gefunden."));
+            return;
+        }
+
+        // 2) Temperatur-Konvertierung für alle gefundenen Sensoren anstoßen.
+        DSTherm drv(*ow);
+        drv.convertTempAll(DSTherm::MAX_CONV_TIME, false);
+
+        // 3) Je Sensor Scratchpad lesen → Adresse + Temperatur ausgeben.
+        for (int i = 0; i < n; i++) {
             Serial.print(F("  "));
-            for (int i = 0; i < 8; i++) {
-                if (i) Serial.print('-');
-                Serial.printf("%02x", static_cast<unsigned>(id[i]));
+            for (int b = 0; b < 8; b++) {
+                if (b) Serial.print('-');
+                Serial.printf("%02x", static_cast<unsigned>(ids[i][b]));
             }
-            Serial.println();
+            Placeholder<DSTherm::Scratchpad> scrpd;
+            const OneWireNg::ErrorCode ec = drv.readScratchpad(ids[i], scrpd);
+            if (ec == OneWireNg::EC_SUCCESS) {
+                Serial.printf("  %.1f °C\n", scrpd->getTemp2() / 16.0f);
+            } else {
+                Serial.printf("  (Lesefehler %d)\n", static_cast<int>(ec));
+            }
         }
         Serial.printf("  Gesamt: %d Sensor(en)\n", n);
         return;
@@ -269,7 +290,7 @@ void processCommand(const String& line) {
         Serial.println(F("  v<N> [0-100|a|z]  Ventil N auf X% (a=auf, z=zu), ohne Arg = Position"));
         Serial.println(F("  i     Status aller Ventile"));
         Serial.println(F("  t     DS18B20-Temperaturen lesen"));
-        Serial.println(F("  s     DS18B20-Adressen suchen (für Konfiguration)"));
+        Serial.println(F("  s     DS18B20 suchen: Adresse + Temperatur"));
         Serial.println(F("  w     WLAN-Status"));
         Serial.println(F("  wr    WLAN-Daten löschen → Portal"));
         Serial.println(F("  h     Hilfe"));

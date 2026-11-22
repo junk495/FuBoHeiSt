@@ -3,7 +3,7 @@
 // DS18B20-Sensoren am 1-Wire-Bus (GPIO40).
 //
 // Hier die eigenen Sensoren eintragen. Die 64-Bit-Adresse (ROM) eines Sensors
-// lässt sich über den seriellen Befehl `s` auslesen (Format: 16 Hex-Zeichen,
+// lässt sich über den seriellen Befehl `s` auslesen (zeigt Adresse + Temperatur; Format: 16 Hex-Zeichen,
 // z. B. "28ff64a1b2c3d4e5" – auch mit Trennzeichen "28-ff-64-a1-b2-c3-d4-e5").
 //
 //   name  = Anzeigename/Rolle (nur Monitor-Ausgabe)

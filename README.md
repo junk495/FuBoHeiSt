@@ -215,8 +215,8 @@ sowie die **konfigurierten DS18B20-Felder** an **ThingSpeak**.
 - Konfiguration (Fühlerliste, Intervalle) in `firmware/include/config.h`.
 - **DS18B20-Sensoren (1-Wire, bis zu 16)** hängen parallel an **GPIO40** und werden über
   **OneWireNg** per eindeutiger 64-Bit-Adresse gelesen. Die Sensorliste (Name, Adresse,
-  ThingSpeak-Feld) wird in **`firmware/include/ds18b20_config.h`** gepflegt; Adressen liest
-  der serielle Befehl **`s`** aus. `field = 0` = nicht an ThingSpeak senden.
+  ThingSpeak-Feld) wird in **`firmware/include/ds18b20_config.h`** gepflegt; Adresse + Temperatur
+  listet der serielle Befehl **`s`** auf. `field = 0` = nicht an ThingSpeak senden.
   OneWireNg statt der klassischen `OneWire`-Lib: deren ESP32-Portierung verweigert für
   GPIOs > 33 den Ausgangsmodus (Überbleibsel vom klassischen ESP32) und konnte GPIO40
   daher nicht ansteuern.
