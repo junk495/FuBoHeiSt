@@ -201,6 +201,8 @@ fbh/config/...                 → Parameter (publish)
 Die Firmware (`firmware/src`) liest aktuell **6 BLE-Raumfühler** (BTHome v2) sowie
 **DS18B20-Temperaturfühler (1-Wire)** aus und pusht die **Raumtemperaturen** (Feld 1–6)
 an den **Raumtemperatur-Kanal** und die **DS18B20-Werte** an einen **eigenen DS18B20-Kanal** (ThingSpeak).
+Zusätzlich sendet sie einen **MQTT-Telemetrie-Snapshot** (JSON, aktuell nur Raumtemperaturen)
+an `heizung/telemetry` (Broker `192.168.1.144:1883`).
 
 - WLAN-Zugangsdaten werden **nicht fest kodiert**, sondern beim ersten Start über ein
   **Captive-Portal** (Hotspot „FuBoHeiSt-Setup") eingegeben und dauerhaft im **NVS**
@@ -221,6 +223,9 @@ an den **Raumtemperatur-Kanal** und die **DS18B20-Werte** an einen **eigenen DS1
   GPIOs > 33 den Ausgangsmodus (Überbleibsel vom klassischen ESP32) und konnte GPIO40
   daher nicht ansteuern.
 - Secrets (ThingSpeak-Keys, zwei Kanäle) in `firmware/include/secrets.h` (gitignored, Vorlage: `secrets.example.h`).
+- **MQTT-Telemetrie** (`PubSubClient`, nicht-blockierend mit Reconnect-Backoff): ein JSON-Snapshot
+  auf `heizung/telemetry` alle 60 s mit `ts` (Unix/UTC via NTP) und `kreise.<name>.t_raum`;
+  fehlende Werte = `null`. Vor-/Rücklauftemperaturen folgen später. Konfig (Broker/Topic/Intervall) in `config.h`.
 - **Offline-first bleibt gewahrt:** ThingSpeak ist nur Logging (Entwicklung/Auswertung).
   Fällt das Internet aus, läuft der spätere Regelkreis lokal weiter.
 - Der Motor-Bringup (Stufe 1) liegt als Referenz in `firmware/test/motor_bringup/`.
@@ -228,7 +233,7 @@ an den **Raumtemperatur-Kanal** und die **DS18B20-Werte** an einen **eigenen DS1
   integriert und über das serielle Interface erreichbar (`k<N>`, `v<N>`, `i`, `t`, `s`, `w`, `wr`, `h`).
   Die Ventilfahrt hat **Vorrang**: während einer Fahrt wird kein neuer BLE-Zyklus gestartet
   (ein bereits laufender, nicht-blockierender Scan läuft im Hintergrund weiter).
-  Ein benutzerfreundlicheres Interface (Web/MQTT) folgt später.
+  Ein Steuer-Interface (Web/MQTT-Control) folgt später; MQTT-Telemetrie ist bereits aktiv.
 
 ### Geplante Projektstruktur
 ```

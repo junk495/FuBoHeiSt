@@ -16,6 +16,7 @@
 #include "pins.h"
 #include "thingspeak.h"
 #include "wifi_config.h"
+#include "mqtt.h"
 #include "MotorDriver.h"
 #include "CurrentSense.h"
 #include "RippleCounter.h"
@@ -37,6 +38,11 @@ struct DsReading {
     int error = -1;
 };
 DsReading dsReadings[Ds18b20Config::SENSOR_COUNT];
+
+// Letzte Raumtemperaturen (BLE) – global gehalten, damit MQTT sie unabhängig
+// vom BLE-Scanzyklus im konfigurierten Intervall senden kann.
+float gRoomTemps[Config::ROOM_COUNT] = {0.0f};
+bool  gRoomValid[Config::ROOM_COUNT] = {false};
 
 // Hex-String (16 Hex-Zeichen, optional mit -, :, Leerzeichen getrennt)
 // → 8-Byte-ROM-Adresse (OneWireNg::Id). Rückgabe: true bei Erfolg.
@@ -118,6 +124,10 @@ void setup() {
     WifiConfig::begin();   // WLAN verbinden oder Captive-Portal (nicht-blockierend)
     BleSensors::begin();   // BLE-Scanner vorbereiten
 
+    // NTP für den Unix-Zeitstempel (ts) im MQTT-Snapshot + MQTT-Client.
+    configTime(Config::NTP_GMT_OFFSET_S, Config::NTP_DST_OFFSET_S, Config::NTP_SERVER);
+    Mqtt::begin();
+
     Serial.println(F("Starte Messzyklus.\n"));
 }
 
@@ -131,10 +141,11 @@ void loop() {
         if (line.length() > 0) processCommand(line);
     }
 
-    // 2. Ventil-Zustandsmaschine + WLAN (beides nicht-blockierend, unabhängig
+    // 2. Ventil-Zustandsmaschine + WLAN + MQTT (nicht-blockierend, unabhängig
     //    vom Messzyklus; Ventil und serielle Befehle funktionieren auch ohne WLAN)
     valve.tick();
     WifiConfig::tick();
+    Mqtt::tick(time(nullptr), gRoomTemps, gRoomValid, Config::ROOM_COUNT);
 
     // Abschluss der letzten Ventil-Operation melden
     if (valveBusyPrev && !valve.busy()) {
@@ -193,6 +204,12 @@ void loop() {
         } else {
             Serial.printf("  %-8s (kein Wert)\n", Config::ROOMS[i].zone);
         }
+    }
+
+    // Für MQTT cachen (Snapshot wird unabhängig vom Scanzyklus gesendet).
+    for (int i = 0; i < Config::ROOM_COUNT; i++) {
+        gRoomTemps[i] = temps[i];
+        gRoomValid[i] = valid[i];
     }
 
     // DS18B20-Temperaturen (1-Wire) lesen und ausgeben
