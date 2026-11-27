@@ -44,6 +44,10 @@ DsReading dsReadings[Ds18b20Config::SENSOR_COUNT];
 float gRoomTemps[Config::ROOM_COUNT] = {0.0f};
 bool  gRoomValid[Config::ROOM_COUNT] = {false};
 
+// DS18B20-Werte (letzter Stand) für den MQTT-Snapshot.
+float gDsTemps[Ds18b20Config::SENSOR_COUNT] = {0.0f};
+bool  gDsValid[Ds18b20Config::SENSOR_COUNT] = {false};
+
 // Hex-String (16 Hex-Zeichen, optional mit -, :, Leerzeichen getrennt)
 // → 8-Byte-ROM-Adresse (OneWireNg::Id). Rückgabe: true bei Erfolg.
 bool parseRom(const char* str, OneWireNg::Id& id) {
@@ -145,7 +149,21 @@ void loop() {
     //    vom Messzyklus; Ventil und serielle Befehle funktionieren auch ohne WLAN)
     valve.tick();
     WifiConfig::tick();
-    Mqtt::tick(time(nullptr), gRoomTemps, gRoomValid, Config::ROOM_COUNT);
+
+    // Ventilstellungen (0–100 %, nur wenn kalibriert) für den MQTT-Snapshot.
+    int  posPct[8];
+    bool posValid[8];
+    for (int ch = 0; ch < 8; ch++) {
+        posValid[ch] = valve.hasReference(ch) && valve.stroke(ch) > 0;
+        posPct[ch] = posValid[ch]
+            ? (int)((long)valve.position(ch) * 100 / (long)valve.stroke(ch))
+            : 0;
+    }
+
+    Mqtt::tick(time(nullptr),
+               gRoomTemps, gRoomValid, Config::ROOM_COUNT,
+               gDsTemps, gDsValid, Ds18b20Config::SENSOR_COUNT,
+               posPct, posValid, 8);
 
     // Abschluss der letzten Ventil-Operation melden
     if (valveBusyPrev && !valve.busy()) {
@@ -214,6 +232,12 @@ void loop() {
 
     // DS18B20-Temperaturen (1-Wire) lesen und ausgeben
     readAllDs18b20();
+
+    // Für den MQTT-Snapshot cachen.
+    for (int i = 0; i < Ds18b20Config::SENSOR_COUNT; i++) {
+        gDsTemps[i] = dsReadings[i].temp;
+        gDsValid[i] = dsReadings[i].valid;
+    }
     for (int i = 0; i < Ds18b20Config::SENSOR_COUNT; i++) {
         if (dsReadings[i].valid) {
             Serial.printf("  %-8s %.1f °C\n", Ds18b20Config::SENSORS[i].name, dsReadings[i].temp);

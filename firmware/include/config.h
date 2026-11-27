@@ -24,6 +24,12 @@ constexpr const char* NTP_SERVER = "pool.ntp.org";
 constexpr long NTP_GMT_OFFSET_S = 0;  // UTC
 constexpr int NTP_DST_OFFSET_S = 0;
 
+// --- Externer Sensor-Broker (Außentemperatur) ---
+constexpr const char* AUSSEN_BROKER_HOST = "192.168.1.20";
+constexpr uint16_t AUSSEN_BROKER_PORT = 1883;
+constexpr const char* AUSSEN_TOPIC = "device/status/CUX9002001/1/TEMPERATURE";
+constexpr uint32_t AUSSEN_TIMEOUT_MS = 1800000;  // 30 min → Wert gilt als veraltet
+
 // Raumfühler: Zone ↔ BLE-MAC ↔ ThingSpeak-Feld (Temperatur).
 struct RoomSensor {
     const char* zone;

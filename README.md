@@ -224,8 +224,11 @@ an `heizung/telemetry` (Broker `192.168.1.144:1883`).
   daher nicht ansteuern.
 - Secrets (ThingSpeak-Keys, zwei Kanäle) in `firmware/include/secrets.h` (gitignored, Vorlage: `secrets.example.h`).
 - **MQTT-Telemetrie** (`PubSubClient`, nicht-blockierend mit Reconnect-Backoff): ein JSON-Snapshot
-  auf `heizung/telemetry` alle 60 s mit `ts` (Unix/UTC via NTP) und `kreise.<name>.t_raum`;
-  fehlende Werte = `null`. Vor-/Rücklauftemperaturen folgen später. Konfig (Broker/Topic/Intervall) in `config.h`.
+  auf `heizung/telemetry` alle 60 s mit `ts` (Unix/UTC via NTP), `aussen_t` (vom externen
+  Sensor-Broker `192.168.1.20`, Topic `device/status/CUX9002001/1/TEMPERATURE` subscribt) 
+  `kreis_vl_t`/`kreis_rl_t`, `kreis_<name>_vl_t`/`_rl_t`/`_pos` und `raum_<name>_t`;
+  fehlende/veraltete Werte = `null`.
+  Konfig (Broker/Topic/Intervall) in `config.h`.
 - **Offline-first bleibt gewahrt:** ThingSpeak ist nur Logging (Entwicklung/Auswertung).
   Fällt das Internet aus, läuft der spätere Regelkreis lokal weiter.
 - Der Motor-Bringup (Stufe 1) liegt als Referenz in `firmware/test/motor_bringup/`.
